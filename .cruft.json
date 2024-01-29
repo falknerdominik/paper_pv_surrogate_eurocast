@@ -1,0 +1,20 @@
+{
+  "template": "https://gitdma.risc-software.at/common/python-package-template",
+  "commit": "d57d8fccc424337f50afa18c74322bd76457958e",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "package_name": "pv_surrogate_eurocast",
+      "package_description": "Contains all the code for the eurocast 2024 paper \"Surrogates for Fair-Weather Photovoltaic Module Output\".",
+      "package_url": "https://github.com/user/my-package",
+      "author_name": "Dominik Falkner",
+      "author_email": "dominik.falkner@risc-software.at",
+      "python_version": "3.12",
+      "docstring_style": "Google",
+      "__package_name_kebab_case": "pv-surrogate-eurocast",
+      "__package_name_snake_case": "pv_surrogate_eurocast",
+      "_template": "https://gitdma.risc-software.at/common/python-package-template"
+    }
+  },
+  "directory": null
+}

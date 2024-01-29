@@ -1,0 +1,52 @@
+# includes from the global ci-templates repository
+include:
+  - project: 'common/ci-templates'
+    ref: main
+    file: '/devops/python/test-pipeline.yml'
+  - project: 'common/ci-templates'
+    ref: main
+    file: '/devops/container/build.yml'
+
+# optional - override the default values, if specified
+variables:
+  # Base URL for the image registry
+  REGISTRY_BASE_URL: registry.risc-software.at/pv_surrogate_eurocast/pv_surrogate_eurocast
+  # specify python working directory (e.g. for mixed repositories)
+  PYTHON_WORKING_DIRECTORY: "."
+  # define a specific python version. Will be replaced in a future version by configuring pyenv in pyproject.toml
+  PYTHON_VERSION: '3.12'
+  # defined image for python testing - should be able to run all python stuff
+  PYTHON_IMAGE: ${REGISTRY_BASE_URL}/test
+
+stages:
+  - provision
+  - sast
+  - test
+  - build
+  - publish
+
+build-base-image:
+  stage: provision
+  needs: []
+  rules:
+    - changes:
+      - poetry.lock
+      - Dockerfile-base
+  extends:
+    - .kaniko-build-image
+  variables:
+    IMAGE_NAME: ${REGISTRY_BASE_URL}/base
+    DOCKERFILE: Dockerfile-base
+
+build-test-image:
+  stage: provision
+  needs: []
+  rules:
+    - changes:
+      - poetry.lock
+      - Dockerfile-test
+  extends:
+    - .kaniko-build-image
+  variables:
+    IMAGE_NAME: ${REGISTRY_BASE_URL}/test
+    DOCKERFILE: Dockerfile-test
