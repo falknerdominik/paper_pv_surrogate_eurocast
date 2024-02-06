@@ -10,7 +10,7 @@ Contains all the code for the eurocast 2024 paper "Surrogates for Fair-Weather P
 - Access via `pvoutput-ofc` library. Downloading metadata
 - TODO: Provide Maps for grid data and maybe heatmap based on location
 
-* **KWp**: MeSt Data?
+* **KWp**: `Bruttoleistung` in open maestr.
 * **Orientation**: Estimated based on PVGIS data. Contains categorical data (Cardinal Directions). Recalculated to degrees (between -90 and 90) using the following mapping:
 
 -90 Degrees: East

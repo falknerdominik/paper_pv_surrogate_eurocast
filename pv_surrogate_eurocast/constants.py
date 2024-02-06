@@ -7,6 +7,7 @@ class Paths:
     data_dir = project_dir.parents[0] / "data"
     results = project_dir.parents[0] / "results"
     system_data_dir = data_dir / "system_data"
+    mastr_system_dir = data_dir / "open-mastr"
     figure_dir = data_dir / "figures"
 
     cache_dir = data_dir / "cache"
@@ -29,8 +30,18 @@ class GeoData:
 class SystemData:
     austrian_systems = Paths.system_data_dir / "pvoutput_austrian_systems.parquet"
     meta_austrian_systems = Paths.system_data_dir / "pvoutput_austrian_systems_meta.parquet"
+
     german_systems = Paths.system_data_dir / "pvoutput_german_systems.parquet"
     meta_german_systems = Paths.system_data_dir / "pvoutput_german_systems_meta.parquet"
+
+    italy_systems = Paths.system_data_dir / "pvoutput_italian_systems.parquet"
+    meta_italy_systems = Paths.system_data_dir / "pvoutput_italian_systems_meta.parquet"
+
+    mastr_system_data = Paths.mastr_system_dir / "mastr-solar-2023-08-08.parquet"
+    mastr_system_data_filtered = Paths.mastr_system_dir / "mastr_filtered.parquet"
+    filtered_mastr_system_data = Paths.mastr_system_dir / "samples_mastr-solar-2023-08-08.parquet"
+
+    german_system_parameter_distribution = Paths.system_data_dir / "german_total_system_parameter_distribution.parquet"
 
 
 class ModulesNearsGeoshpereReport:
