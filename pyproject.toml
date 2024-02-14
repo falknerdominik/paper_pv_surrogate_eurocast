@@ -36,6 +36,9 @@ pyarrow = "^14.0.2"
 pandera = "^0.18.0"
 geopandas = "^0.14.2"
 prefect = "^2.14.17"
+seaborn = "^0.13.2"
+scipy = "^1.12.0"
+scikit-learn = "^1.4.0"
 [tool.poetry.group.dev.dependencies]  
 poethepoet = "^0.20.0"
 black = { version = "^23.3.0", extras = ["jupyter"] }
@@ -67,6 +70,14 @@ test = "pytest"
 [[tool.poe.tasks.setup-project]]
 script = "pv_surrogate_eurocast.scripts.setup_project:main"
 help = "Sets up the structure for the project. Downloads Geo data"
+
+[[tool.poe.tasks.prep-parameters]]
+script = "pv_surrogate_eurocast.scripts.prepare_parameter_distribution:main"
+help = "Prepares parameter distribution by enriching open_mastr data using pvoutput data"
+
+[[tool.poe.tasks.download_pvgis_data]]
+script = "pv_surrogate_eurocast.scripts.download_pvgis_data:main"
+help = "Prepares parameter distribution by enriching open_mastr data using pvoutput data"
 
 # https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
 [tool.black]

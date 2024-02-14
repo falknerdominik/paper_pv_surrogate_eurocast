@@ -12,7 +12,7 @@ def download_from_url(url: str, target: str):
     # Check if the request was successful
     if response.status_code == 200:
         # Write the content of the response (which is the zip file) to the specified path
-        with open(Paths.natural_earth_data, "wb") as file:
+        with open(GeoData.natural_earth_data, "wb") as file:
             file.write(response.content)
     else:
         raise Exception(f"Request failed with status code {response.status_code}")
@@ -28,7 +28,7 @@ def main():
     setup_structure()
     download_from_url(
         url=GeoData.natural_earth_data_url,
-        target=Paths.natural_earth_data,
+        target=GeoData.natural_earth_data,
     )
 
 

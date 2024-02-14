@@ -6,13 +6,13 @@ class Paths:
 
     data_dir = project_dir.parents[0] / "data"
     results = project_dir.parents[0] / "results"
+
     system_data_dir = data_dir / "system_data"
     mastr_system_dir = data_dir / "open-mastr"
     figure_dir = data_dir / "figures"
+    pvgis_data_dir = data_dir / "pvgis"
 
     cache_dir = data_dir / "cache"
-
-    natural_earth_data = cache_dir / "ne_10m_admin_0_countries.zip"
 
     @staticmethod
     def ensure_directories_exists():
@@ -21,10 +21,12 @@ class Paths:
         Paths.system_data_dir.mkdir(parents=True, exist_ok=True)
         Paths.results.mkdir(parents=True, exist_ok=True)
         Paths.figure_dir.mkdir(parents=True, exist_ok=True)
+        Paths.pvgis_data_dir.mkdir(parents=True, exist_ok=True)
 
 
 class GeoData:
     natural_earth_data_url = "https://naturalearth.s3.amazonaws.com/10m_cultural/ne_10m_admin_0_countries.zip"
+    natural_earth_data = Paths.cache_dir / "ne_10m_admin_0_countries.zip"
 
 
 class SystemData:
@@ -42,6 +44,8 @@ class SystemData:
     filtered_mastr_system_data = Paths.mastr_system_dir / "samples_mastr-solar-2023-08-08.parquet"
 
     german_system_parameter_distribution = Paths.system_data_dir / "german_total_system_parameter_distribution.parquet"
+    german_enriched_train_distribution = Paths.system_data_dir / "german_enriched_train_distribution.parquet"
+    german_enriched_test_distribution = Paths.system_data_dir / "german_enriched_test_distribution.parquet"
 
 
 class ModulesNearsGeoshpereReport:

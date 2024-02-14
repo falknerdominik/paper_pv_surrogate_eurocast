@@ -10,7 +10,7 @@ include:
 # optional - override the default values, if specified
 variables:
   # Base URL for the image registry
-  REGISTRY_BASE_URL: registry.risc-software.at/pv_surrogate_eurocast/pv_surrogate_eurocast
+  REGISTRY_BASE_URL: registry.risc-software.at/risc_ds/pv-surrogate-eurocast
   # specify python working directory (e.g. for mixed repositories)
   PYTHON_WORKING_DIRECTORY: "."
   # define a specific python version. Will be replaced in a future version by configuring pyenv in pyproject.toml
@@ -50,3 +50,16 @@ build-test-image:
   variables:
     IMAGE_NAME: ${REGISTRY_BASE_URL}/test
     DOCKERFILE: Dockerfile-test
+
+build-pvgis-downloader-image:
+  stage: provision
+  needs: []
+  rules:
+    - changes:
+      - poetry.lock
+      - Dockerfile-pvgis-downloader
+  extends:
+    - .kaniko-build-image
+  variables:
+    IMAGE_NAME: ${REGISTRY_BASE_URL}/pvgis-downloader
+    DOCKERFILE: Dockerfile-pvgis-downloader
