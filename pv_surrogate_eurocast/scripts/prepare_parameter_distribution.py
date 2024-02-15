@@ -213,6 +213,7 @@ def draw_random_points_from_country(
     natural_earth_data: Path,
     country_name: str,
 ) -> Path:
+    random.seed(42)
     # Filter for a specific country, e.g., Germany
     world = gpd.read_file(natural_earth_data)
     country = world[world["NAME"] == country_name]
@@ -388,15 +389,15 @@ def main():
     #     samples_target_path, SystemData.meta_german_systems, SystemData.german_system_parameter_distribution
     # )
 
-    distribution_path = SystemData.german_system_parameter_distribution
-    draw_pretraining_dataset(
-        15000,
-        "Germany",
-        distribution_path,
-        SystemData.german_enriched_train_distribution,
-        SystemData.german_enriched_test_distribution,
-        Paths.figure_dir,
-    )
+    # distribution_path = SystemData.german_system_parameter_distribution
+    # draw_pretraining_dataset(
+    #     15000,
+    #     "Germany",
+    #     distribution_path,
+    #     SystemData.german_enriched_train_distribution,
+    #     SystemData.german_enriched_test_distribution,
+    #     Paths.figure_dir,
+    # )
 
     draw_sampled_locations_on_map(
         "Germany",
