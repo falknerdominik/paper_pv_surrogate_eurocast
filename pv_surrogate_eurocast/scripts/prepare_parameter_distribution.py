@@ -355,10 +355,11 @@ def draw_sampled_locations_on_map(
 ):
     # Filter for a specific country, e.g., Germany
     world = gpd.read_file(natural_earth_data)
-    country = world[world["NAME"] == country_name]
+    country = world[world["NAME"] == country_name].to_crs(epsg=4326)
 
     # Plot the country's boundary
-    ax = country.plot(color="white", edgecolor="black")
+    _, ax = plt.subplots(figsize=(10, 10))
+    country.plot(ax=ax, color="white", edgecolor="black")
 
     # Plot the random points
     train_points["geometry"].plot(ax=ax, color="skyblue", markersize=2, label="Train Set")

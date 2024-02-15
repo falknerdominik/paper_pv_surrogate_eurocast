@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 import geopandas as gpd
+from joblib import Parallel, delayed
 import pandas as pd
 import requests
 from prefect import flow, task
@@ -24,7 +25,7 @@ def query_pvgis(config_entry) -> dict | tuple[None, int]:
     if response.status_code == 200:
         return response.json()
     else:
-        raise requests.HTTPError(f"Request failed with status code {response.status_code}")
+        raise requests.HTTPError(f"Request failed with status code {response.status_code}. Reason {response.content}")
 
 
 @task
@@ -57,8 +58,12 @@ def download_and_save_pvgis_data(record: PVGISConfigurationSchema):
         json = config.model_dump_json()
         with open(Paths.pvgis_data_dir / f"{record['sample_id']}.json", "w") as file:
             file.write(json)
+        logger.info(f"Downloaded data for {record['sample_id']}")
     except requests.HTTPError as e:
         logger.error(f"Failed to download data for {record['sample_id']}. Reason {e}")
+        error_file = Paths.pvgis_data_dir / f"error_{record['sample_id']}.json"
+        with open(error_file, 'w') as file:
+            file.write(str(e))
 
 
 @task
@@ -69,16 +74,21 @@ def read_configurations(distribution_path: Path) -> list[dict]:
         .drop(columns=["geometry"])
         .rename(columns=map_system_data_to_pvgis_configuration)
     )
+    done = pd.read_csv("/Users/dfalkner/projects/pv-surrogate-eurocast/already_done.csv")
+    pvgis_configurations = pvgis_configurations[~pvgis_configurations['sample_id'].isin(done.iloc[:, 0])]
     return pvgis_configurations.to_dict(orient="records")
 
 
-@flow
 def main():
-    pvgis_configurations = read_configurations(SystemData.german_enriched_train_distribution)
-    pvgis_configurations = pvgis_configurations[0:1]
-    download_and_save_pvgis_data.map(pvgis_configurations)
-    # pvgis_configurations = read_configurations(SystemData.german_enriched_test_distribution)
-    # download_and_save_pvgis_data.map(pvgis_configurations)
+    logging.basicConfig(level=logging.INFO)
+
+    # train dataset
+    # pvgis_configurations = read_configurations.fn(SystemData.german_enriched_train_distribution)
+    # Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
+
+    # test dataset
+    pvgis_configurations = read_configurations.fn(SystemData.german_enriched_test_distribution)
+    Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
 
 
 if __name__ == "__main__":
