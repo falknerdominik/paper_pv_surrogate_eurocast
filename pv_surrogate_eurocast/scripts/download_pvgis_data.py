@@ -83,8 +83,8 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     # train dataset
-    # pvgis_configurations = read_configurations.fn(SystemData.german_enriched_train_distribution)
-    # Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
+    pvgis_configurations = read_configurations.fn(SystemData.german_enriched_train_distribution)
+    Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
 
     # test dataset
     pvgis_configurations = read_configurations.fn(SystemData.german_enriched_test_distribution)
