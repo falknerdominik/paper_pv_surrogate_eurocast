@@ -2,6 +2,20 @@
 
 Contains all the code for the eurocast 2024 paper "Surrogates for Fair-Weather Photovoltaic Module Output".
 
+
+Workflow
+--------
+
+```mermaid
+graph TB;
+setup_project --> download_pvgis_data
+setup_project --> download_pvoutput_data
+download_pvgis_data --> prepare_parameter_distribution
+download_pvoutput_data --> prepare_parameter_distribution
+prepare_parameter_distribution --> find_starting_points
+prepare_parameter_distribution --> find_extrema
+```
+
 ## Sampling from Distribution
 
 ## PVGIS Data Download
