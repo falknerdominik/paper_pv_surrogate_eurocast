@@ -56,4 +56,4 @@ RUN poetry install --all-extras --no-root
 # Copy the rest of the repository
 ADD . .
 
-CMD ["poetry", "run", "poe", "download_pvgis_data"]
+ENTRYPOINT ["tail", "-f", "/dev/null"]
