@@ -2,10 +2,10 @@ import logging
 from pathlib import Path
 
 import geopandas as gpd
-from joblib import Parallel, delayed
 import pandas as pd
 import requests
-from prefect import flow, task
+from joblib import Parallel, delayed
+from prefect import task
 
 from pv_surrogate_eurocast.constants import Paths, SystemData
 from pv_surrogate_eurocast.typedef import (
@@ -62,7 +62,7 @@ def download_and_save_pvgis_data(record: PVGISConfigurationSchema):
     except requests.HTTPError as e:
         logger.error(f"Failed to download data for {record['sample_id']}. Reason {e}")
         error_file = Paths.pvgis_data_dir / f"error_{record['sample_id']}.json"
-        with open(error_file, 'w') as file:
+        with open(error_file, "w") as file:
             file.write(str(e))
 
 
@@ -75,7 +75,7 @@ def read_configurations(distribution_path: Path) -> list[dict]:
         .rename(columns=map_system_data_to_pvgis_configuration)
     )
     done = pd.read_csv("/Users/dfalkner/projects/pv-surrogate-eurocast/already_done.csv")
-    pvgis_configurations = pvgis_configurations[~pvgis_configurations['sample_id'].isin(done.iloc[:, 0])]
+    pvgis_configurations = pvgis_configurations[~pvgis_configurations["sample_id"].isin(done.iloc[:, 0])]
     return pvgis_configurations.to_dict(orient="records")
 
 

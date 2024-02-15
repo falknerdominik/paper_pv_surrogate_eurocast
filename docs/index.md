@@ -39,8 +39,78 @@ Probably limit to austria / germany / (italy) / Gran Canary
 
 ## Downloading Data from PVGIS
 
-## EX01
+Downloader via API and parallelized using `joblib`.
+Data per observed module is downloaded from the PVOutput API. The data is then used to train the models. The data is then used to predict the output of the module. 
 
-## EX02
+All data starts at 2005-01-01 and ends at 2020-12-31. The last year is used for evaluation.
 
-## EX03
+## Data Exploration
+
+- [x] Distribution of the data
+- [x] What filtering was done (e.g. only residential systems, exclude lowest and highest 1% of the data)
+- [x] Building the distribution based on the data
+
+Module selection:
+- Uniform distribution across country
+- Random samples for each module (parameters + location)
+- Random samples for a module (only parameters)
+
+
+## Employed Models
+
+- PatchTST
+- NHiTs
+- SymReg
+
+- Pretrained
+- Pretrained + Fine Tuned (on n years)
+
+Input Data:
+- Longitude
+- Latitude
+- kwP
+- Orientation
+- Tilt
+- System Loss
+- Daynumber of the year
+
+Might look into past data (past week / days)
+
+Output Data:
+- Prediction for day number
+
+Probably not:
+- PV Technology
+- Mounting Position
+
+## EX01 - How well can models capture the output of a module / global_irradiation?
+
+Training the models is done from 2005 - 2019. The last year is kept for evaluation.
+
+Results:
+ - Avg MSE for each model of the last year
+ - Fine Tuning MSE for each model (increasing data for fine-tuning/pre-learning)
+
+Train the models on the data and evaluate them on the last year. Add noise to the data and evaluate the models on the noisy data.
+Use White noise. drift would be interesting (based on data how much loss over time)
+
+## EX02 - How well can capture Module for different parameters?
+
+Use ~10 Module Positions and train the models on data from different parameter configurations - probably sample 1000 configurations and evaluate the models on them. Pretraining is done on base data all over germany.
+
+Output should be a feeling which parameters can modeled well and which not.
+
+Idea:
+  - Save a dataframe from training:
+  [kwP, Orientation, Tilt, ModelName, Error]
+  - Project everything but the error using dimension reduction (PCA, UMAP, t-SNE) into a two-dimensional space
+  - Plot it using a heatmap, Explained Variance, ...
+
+## EX03 - How big of an area can be covered by a single model?
+
+Vary the longitude and latitude (positive and negative direction). Define a cutoff point (drop in performance) and plot the area that can be covered by a single model.
+
+The area should be defined by the 3 points which are equally distributed on a cirle (or 5 for an ellipes).
+Next determine the cutoff point (e.g. 10% drop in performance) and plot the area that can be covered by a single model.
+
+Visualize the cutoff points for each 'ray'. give an approximation of the area.

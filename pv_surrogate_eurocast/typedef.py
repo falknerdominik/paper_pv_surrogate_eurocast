@@ -97,7 +97,7 @@ class ConfigurationEntry(BaseModel):
     pvcalculation: int = 1
     fixed: int = 1  # we work only with fixed modules
     # we work only with crystalline silicon modules, they make up the majority and no data is available for other types
-    pvtechchoice: str = "crystSi"  
+    pvtechchoice: str = "crystSi"
 
     model_config = {
         "json_schema_extra": {

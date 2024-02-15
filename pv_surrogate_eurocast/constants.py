@@ -46,6 +46,7 @@ class SystemData:
     german_system_parameter_distribution = Paths.system_data_dir / "german_total_system_parameter_distribution.parquet"
     german_enriched_train_distribution = Paths.system_data_dir / "german_enriched_train_distribution.parquet"
     german_enriched_test_distribution = Paths.system_data_dir / "german_enriched_test_distribution.parquet"
+    german_starting_points = Paths.system_data_dir / "german_starting_points.parquet"
 
 
 class ModulesNearsGeoshpereReport:
