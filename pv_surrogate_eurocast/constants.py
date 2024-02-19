@@ -9,10 +9,12 @@ class Paths:
 
     system_data_dir = data_dir / "system_data"
     mastr_system_dir = data_dir / "open-mastr"
-    figure_dir = data_dir / "figures"
     pvgis_data_dir = data_dir / "pvgis"
 
     cache_dir = data_dir / "cache"
+
+    figure_dir = data_dir / "figures"
+    extrema_dir = figure_dir / "extrema"
 
     @staticmethod
     def ensure_directories_exists():
@@ -21,6 +23,7 @@ class Paths:
         Paths.system_data_dir.mkdir(parents=True, exist_ok=True)
         Paths.results.mkdir(parents=True, exist_ok=True)
         Paths.figure_dir.mkdir(parents=True, exist_ok=True)
+        Paths.extrema_dir.mkdir(parents=True, exist_ok=True)
         Paths.pvgis_data_dir.mkdir(parents=True, exist_ok=True)
 
 

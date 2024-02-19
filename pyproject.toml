@@ -73,11 +73,11 @@ script = "pv_surrogate_eurocast.scripts.setup_project:main"
 help = "Sets up the structure for the project. Downloads Geo data"
 
 [[tool.poe.tasks.prep-parameters]]
-script = "pv_surrogate_eurocast.scripts.prepare_parameter_distribution:main"
+script = "pv_surrogate_eurocast.scripts.data.prepare_parameter_distribution:main"
 help = "Prepares parameter distribution by enriching open_mastr data using pvoutput data"
 
 [[tool.poe.tasks.download_pvgis_data]]
-script = "pv_surrogate_eurocast.scripts.download_pvgis_data:main"
+script = "pv_surrogate_eurocast.scripts.data.download_pvgis_data:main"
 help = "Prepares parameter distribution by enriching open_mastr data using pvoutput data"
 
 # https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
