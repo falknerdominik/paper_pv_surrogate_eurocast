@@ -11,6 +11,7 @@ class Paths:
     mastr_system_dir = data_dir / "open-mastr"
     pvgis_data_dir = data_dir / "pvgis"
     pvgis_outward_data_dir = data_dir / "pvgis_outward"
+    pvgis_fixed_location = data_dir / "pvgis_fixed_location"
 
     cache_dir = data_dir / "cache"
 
@@ -30,6 +31,7 @@ class Paths:
         Paths.extrema_dir.mkdir(parents=True, exist_ok=True)
         Paths.pvgis_data_dir.mkdir(parents=True, exist_ok=True)
         Paths.pvgis_outward_data_dir.mkdir(parents=True, exist_ok=True)
+        Paths.pvgis_fixed_location.mkdir(parents=True, exist_ok=True)
 
 
 class GeoData:

@@ -49,9 +49,9 @@ def main():
         # fit neuralforecast models
         horizon = 24
         models = [
-            AutoNHITS(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100),
-            AutoTFT(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100),
-            AutoMLP(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100),
+            AutoNHITS(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100, scaler_type="standard"),
+            AutoTFT(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100, scaler_type="standard"),
+            AutoMLP(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100, scaler_type="standard"),
         ]
         nf = NeuralForecast(models=models, freq="H")
         nf.fit(df=data, static_df=static_data, val_size=0, sort_df=True)

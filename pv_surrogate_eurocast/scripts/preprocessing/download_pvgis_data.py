@@ -92,22 +92,47 @@ def remap_configuration_outward_points(config: dict) -> dict:
     }
 
 
+def remap_config_fix_location(config: dict, lon: float, lat: float) -> dict:
+    return {
+        "sample_id": f'{config["sample_id"]}',
+        "lat": lat,
+        "lon": lon,
+        "peakpower": config["peakpower"],
+        "angle": config["angle"],
+        "aspect": config["aspect"],
+        "loss": config["loss"],
+        "mounting": config["mounting"],
+    }
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
 
-    # train dataset
+    # download general train dataset
     # pvgis_configurations = read_configurations.fn(SystemData.german_enriched_train_distribution)
     # Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
 
-    # test dataset
+    # download general test dataset
     # pvgis_configurations = read_configurations.fn(SystemData.german_enriched_test_distribution)
     # Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
 
     # download outward points
-    pvgis_configurations = read_configurations.fn(SystemData.german_outward_points)
+    # pvgis_configurations = read_configurations.fn(SystemData.german_outward_points)
+    # Parallel(n_jobs=4)(
+    #     delayed(download_and_save_pvgis_data.fn)(
+    #         remap_configuration_outward_points(config), Paths.pvgis_outward_data_dir
+    #     )
+    #     for config in pvgis_configurations
+    # )
+
+    # download data for a single location and many different parameters by using the parameters provided in the test set
+    pvgis_configurations = read_configurations.fn(SystemData.german_enriched_test_distribution)
+    # fix location
+    lon = pvgis_configurations[0]["lon"]
+    lat = pvgis_configurations[0]["lat"]
     Parallel(n_jobs=4)(
         delayed(download_and_save_pvgis_data.fn)(
-            remap_configuration_outward_points(config), Paths.pvgis_outward_data_dir
+            remap_config_fix_location(config, lon=lon, lat=lat), Paths.pvgis_fixed_location
         )
         for config in pvgis_configurations
     )
