@@ -14,6 +14,11 @@ prepare_parameter_distribution --> download_pvgis_data
 prepare_parameter_distribution --> find_starting_points
 find_starting_points --> download_pvgis_data
 download_pvgis_data --> find_extrema
+download_pvgis_data --> model_pretraining
+
+model_pretraining --> parameter_eval
+model_pretraining --> location_eval
+model_pretraining --> individual_ts_eval
 ```
 
 ## Sampling from Distribution
