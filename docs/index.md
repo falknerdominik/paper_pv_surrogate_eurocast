@@ -11,7 +11,8 @@ graph TB;
 setup_project --> download_pvoutput_data
 download_pvoutput_data --> prepare_parameter_distribution
 prepare_parameter_distribution --> download_pvgis_data
-download_pvgis_data --> find_starting_points
+prepare_parameter_distribution --> find_starting_points
+find_starting_points --> download_pvgis_data
 download_pvgis_data --> find_extrema
 ```
 

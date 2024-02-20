@@ -29,7 +29,7 @@ def query_pvgis(config_entry) -> dict | tuple[None, int]:
 
 
 @task
-def download_and_save_pvgis_data(record: PVGISConfigurationSchema):
+def download_and_save_pvgis_data(record: PVGISConfigurationSchema, target_dir: Path = Paths.pvgis_data_dir):
     config = ConfigurationEntry(
         lat=record["lat"],
         lon=record["lon"],
@@ -54,14 +54,14 @@ def download_and_save_pvgis_data(record: PVGISConfigurationSchema):
             ds=lambda df: pd.to_datetime(df["ds"], format="%Y%m%d:%H%M")
         )
 
-        data.to_parquet(Paths.pvgis_data_dir / f"{record['sample_id']}.parquet")
+        data.to_parquet(target_dir / f"{record['sample_id']}.parquet")
         json = config.model_dump_json()
-        with open(Paths.pvgis_data_dir / f"{record['sample_id']}.json", "w") as file:
+        with open(target_dir / f"{record['sample_id']}.json", "w") as file:
             file.write(json)
         logger.info(f"Downloaded data for {record['sample_id']}")
     except requests.HTTPError as e:
         logger.error(f"Failed to download data for {record['sample_id']}. Reason {e}")
-        error_file = Paths.pvgis_data_dir / f"error_{record['sample_id']}.json"
+        error_file = target_dir / f"error_{record['sample_id']}.json"
         with open(error_file, "w") as file:
             file.write(str(e))
 
@@ -74,21 +74,38 @@ def read_configurations(distribution_path: Path) -> list[dict]:
         .drop(columns=["geometry"])
         .rename(columns=map_system_data_to_pvgis_configuration)
     )
-    done = pd.read_csv("/Users/dfalkner/projects/pv-surrogate-eurocast/already_done.csv")
-    pvgis_configurations = pvgis_configurations[~pvgis_configurations["sample_id"].isin(done.iloc[:, 0])]
+    # done = pd.read_csv("/Users/dfalkner/projects/pv-surrogate-eurocast/already_done.csv")
+    # pvgis_configurations = pvgis_configurations[~pvgis_configurations["sample_id"].isin(done.iloc[:, 0])]
     return pvgis_configurations.to_dict(orient="records")
 
+
+def remap_configuration_outward_points(config: dict) -> dict:
+    return {
+        "sample_id": f'{config["sample_id"]}_{config["bearing"]}_{config["distance"]}',
+        "lat": config["lat"],
+        "lon": config["lon"],
+        "peakpower": config["peakpower"],
+        "angle": config["angle"],
+        "aspect": config["aspect"],
+        "loss": config["loss"],
+        "mounting": config["mounting"],
+    }
 
 def main():
     logging.basicConfig(level=logging.INFO)
 
     # train dataset
-    pvgis_configurations = read_configurations.fn(SystemData.german_enriched_train_distribution)
-    Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
+    # pvgis_configurations = read_configurations.fn(SystemData.german_enriched_train_distribution)
+    # Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
 
     # test dataset
-    pvgis_configurations = read_configurations.fn(SystemData.german_enriched_test_distribution)
-    Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
+    # pvgis_configurations = read_configurations.fn(SystemData.german_enriched_test_distribution)
+    # Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(config) for config in pvgis_configurations)
+
+    # download outward points
+    pvgis_configurations = read_configurations.fn(SystemData.german_outward_points)
+    Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(remap_configuration_outward_points(config), Paths.pvgis_outward_data_dir) for config in pvgis_configurations)
+
 
 
 if __name__ == "__main__":

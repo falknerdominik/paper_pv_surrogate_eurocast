@@ -10,11 +10,14 @@ class Paths:
     system_data_dir = data_dir / "system_data"
     mastr_system_dir = data_dir / "open-mastr"
     pvgis_data_dir = data_dir / "pvgis"
+    pvgis_outward_data_dir = data_dir / "pvgis_outward"
 
     cache_dir = data_dir / "cache"
 
     figure_dir = data_dir / "figures"
     extrema_dir = figure_dir / "extrema"
+
+    model_checkpoints = data_dir / "model_checkpoints"
 
     @staticmethod
     def ensure_directories_exists():
@@ -22,9 +25,11 @@ class Paths:
         Paths.data_dir.mkdir(parents=True, exist_ok=True)
         Paths.system_data_dir.mkdir(parents=True, exist_ok=True)
         Paths.results.mkdir(parents=True, exist_ok=True)
+        Paths.data_dir.mkdir(parents=True, exist_ok=True)
         Paths.figure_dir.mkdir(parents=True, exist_ok=True)
         Paths.extrema_dir.mkdir(parents=True, exist_ok=True)
         Paths.pvgis_data_dir.mkdir(parents=True, exist_ok=True)
+        Paths.pvgis_outward_data_dir.mkdir(parents=True, exist_ok=True)
 
 
 class GeoData:
@@ -50,6 +55,7 @@ class SystemData:
     german_enriched_train_distribution = Paths.system_data_dir / "german_enriched_train_distribution.parquet"
     german_enriched_test_distribution = Paths.system_data_dir / "german_enriched_test_distribution.parquet"
     german_starting_points = Paths.system_data_dir / "german_starting_points.parquet"
+    german_outward_points = Paths.system_data_dir / "german_outward_points.parquet"
 
 
 class ModulesNearsGeoshpereReport:
