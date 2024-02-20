@@ -28,7 +28,7 @@ priority = "explicit"
 
 # https://python-poetry.org/docs/dependency-specification/
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10"
 
 # https://python-poetry.org/docs/master/managing-dependencies/
 pvoutput-ocf = "^0.1.30"
@@ -40,6 +40,8 @@ seaborn = "^0.13.2"
 scipy = "^1.12.0"
 scikit-learn = "^1.4.0"
 geopy = "^2.4.1"
+neuralforecast = "^1.6.4"
+hyperopt = "^0.2.7"
 [tool.poetry.group.dev.dependencies]  
 poethepoet = "^0.20.0"
 black = { version = "^23.3.0", extras = ["jupyter"] }
@@ -54,6 +56,7 @@ mkdocs-material = "^9.1.15"
 mkdocstrings = {extras = ["python"], version = "^0.22.0"}
 
 # https://github.com/nat-n/poethepoet
+tensorboard = "^2.16.2"
 [tool.poe.tasks]
 _format = "black ."
 _sort_imports = "isort ."
