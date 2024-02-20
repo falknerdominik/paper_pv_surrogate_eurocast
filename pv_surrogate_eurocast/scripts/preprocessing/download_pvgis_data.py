@@ -91,6 +91,7 @@ def remap_configuration_outward_points(config: dict) -> dict:
         "mounting": config["mounting"],
     }
 
+
 def main():
     logging.basicConfig(level=logging.INFO)
 
@@ -104,8 +105,12 @@ def main():
 
     # download outward points
     pvgis_configurations = read_configurations.fn(SystemData.german_outward_points)
-    Parallel(n_jobs=4)(delayed(download_and_save_pvgis_data.fn)(remap_configuration_outward_points(config), Paths.pvgis_outward_data_dir) for config in pvgis_configurations)
-
+    Parallel(n_jobs=4)(
+        delayed(download_and_save_pvgis_data.fn)(
+            remap_configuration_outward_points(config), Paths.pvgis_outward_data_dir
+        )
+        for config in pvgis_configurations
+    )
 
 
 if __name__ == "__main__":

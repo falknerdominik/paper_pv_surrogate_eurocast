@@ -63,3 +63,17 @@ build-pvgis-downloader-image:
   variables:
     IMAGE_NAME: ${REGISTRY_BASE_URL}/pvgis-downloader
     DOCKERFILE: Dockerfile-pvgis-downloader
+
+
+build-cuda-image:
+  stage: provision
+  needs: []
+  rules:
+    - changes:
+      - poetry.lock
+      - Dockerfile-cuda
+  extends:
+    - .kaniko-build-image
+  variables:
+    IMAGE_NAME: ${REGISTRY_BASE_URL}/cuda
+    DOCKERFILE: Dockerfile-cuda

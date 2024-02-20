@@ -1,7 +1,8 @@
 from pathlib import Path
+
 import geopandas as gpd
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import pandas as pd
 
 from pv_surrogate_eurocast.constants import GeoData, Paths, SystemData
@@ -9,11 +10,14 @@ from pv_surrogate_eurocast.typedef import NormalizedPVGISSchema
 
 
 def plot_histogram_for_day(
-        data: pd.DataFrame, 
-        x: str, y: str,
-        ax: plt.Axes, day: str, station: str,
-        unit: str = None,
-    ) -> None:
+    data: pd.DataFrame,
+    x: str,
+    y: str,
+    ax: plt.Axes,
+    day: str,
+    station: str,
+    unit: str = None,
+) -> None:
     """
     Plots a histogram for the given day using the specified DataFrame.
 
@@ -29,13 +33,13 @@ def plot_histogram_for_day(
     """
     day_data = data[(data[x] >= pd.to_datetime(day)) & (data[x] < pd.to_datetime(day) + pd.Timedelta(days=1))]
     # ax.hist(day_data["global_irradiance"], bins=24, color="skyblue")  # Assuming hourly data for 24 bins
-    ax.bar(day_data[x], day_data[y], width=0.03, color='blue')  # Adjust width as needed
+    ax.bar(day_data[x], day_data[y], width=0.03, color="blue")  # Adjust width as needed
 
     # axis formatting
     ax.xaxis.set_label_text("Hour of the Day")
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))  # Adjust format as needed
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))  # Adjust format as needed
     ax.xaxis.set_major_locator(mdates.HourLocator(interval=2))  # Set interval to display every hour
-    ax.tick_params(axis='x', rotation=45)  # Rotate x-axis labels for better readability
+    ax.tick_params(axis="x", rotation=45)  # Rotate x-axis labels for better readability
 
     ax.yaxis.set_label_text(unit)
 
@@ -118,13 +122,13 @@ def draw_country_points(
     fig.savefig(target_path)
 
 
-
 def draw_histograms_per_day(
     north: tuple[int, pd.DataFrame],
     south: tuple[int, pd.DataFrame],
     west: tuple[int, pd.DataFrame],
     east: tuple[int, pd.DataFrame],
-    x: str, y: str,
+    x: str,
+    y: str,
     day: str,
     target_path: Path,
     day_name: str = None,
@@ -132,7 +136,7 @@ def draw_histograms_per_day(
 ):
     """
     Draws a 2x2 grid subplot with bar plots for each direction.
-    
+
     Args:
         north: Tuple containing the hour and DataFrame for the North direction.
         south: Tuple containing the hour and DataFrame for the South direction.
@@ -142,7 +146,6 @@ def draw_histograms_per_day(
     """
     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
 
-    
     plot_histogram_for_day(north[1], x, y, axs[0, 0], day, north[0], unit=unit)
     plot_histogram_for_day(south[1], x, y, axs[0, 1], day, south[0], unit=unit)
     plot_histogram_for_day(west[1], x, y, axs[1, 0], day, west[0], unit=unit)
@@ -151,7 +154,7 @@ def draw_histograms_per_day(
         plt.suptitle(f"{y} on {day_name} ({day})")
     else:
         plt.suptitle(f"{y} on {day}")
-    
+
     plt.tight_layout()
     plt.savefig(target_path)
 
@@ -163,7 +166,7 @@ def main():
     draw_country_points(
         gpd.GeoDataFrame([north, south, west, east]),
         country_name,
-        Paths.extrema_dir / f'{country_name}_extrema.pdf',
+        Paths.extrema_dir / f"{country_name}_extrema.pdf",
     )
 
     interesting_days = {
@@ -171,28 +174,32 @@ def main():
             "spring_equinox": "2019-03-20",
             "summer_solstice": "2019-06-21",
             "autumn_equinox": "2019-09-23",
-            "winter_solstice": "2019-12-22"
+            "winter_solstice": "2019-12-22",
         },
         "2020": {
             "spring_equinox": "2020-03-19",
             "summer_solstice": "2020-06-20",
             "autumn_equinox": "2020-09-22",
-            "winter_solstice": "2020-12-21"
-        }
+            "winter_solstice": "2020-12-21",
+        },
     }
 
-    for target_variable, unit in [(NormalizedPVGISSchema.global_irradiance, "W/m^2"), (NormalizedPVGISSchema.power, "watts")]:
+    for target_variable, unit in [
+        (NormalizedPVGISSchema.global_irradiance, "W/m^2"),
+        (NormalizedPVGISSchema.power, "watts"),
+    ]:
         target_path = Paths.extrema_dir / target_variable
         target_path.mkdir(parents=True, exist_ok=True)
 
         for year in interesting_days.keys():
             for name, day in interesting_days[year].items():
                 draw_histograms_per_day(
-                    (north['sample_id'], pd.read_parquet(Paths.pvgis_data_dir / f"{north['sample_id']}.parquet")),
-                    (south['sample_id'], pd.read_parquet(Paths.pvgis_data_dir / f"{south['sample_id']}.parquet")),
-                    (west['sample_id'], pd.read_parquet(Paths.pvgis_data_dir / f"{west['sample_id']}.parquet")),
-                    (east['sample_id'], pd.read_parquet(Paths.pvgis_data_dir / f"{east['sample_id']}.parquet")),
-                    NormalizedPVGISSchema.ds, target_variable,
+                    (north["sample_id"], pd.read_parquet(Paths.pvgis_data_dir / f"{north['sample_id']}.parquet")),
+                    (south["sample_id"], pd.read_parquet(Paths.pvgis_data_dir / f"{south['sample_id']}.parquet")),
+                    (west["sample_id"], pd.read_parquet(Paths.pvgis_data_dir / f"{west['sample_id']}.parquet")),
+                    (east["sample_id"], pd.read_parquet(Paths.pvgis_data_dir / f"{east['sample_id']}.parquet")),
+                    NormalizedPVGISSchema.ds,
+                    target_variable,
                     day,
                     target_path / f"{year}_{name}.pdf",
                     day_name=name,

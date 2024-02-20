@@ -8,9 +8,10 @@ It filters any points not within the specified country and ensures that no two p
 
 from math import radians
 from pathlib import Path
+
 import geopandas as gpd
-from geopy.distance import geodesic
 import matplotlib.pyplot as plt
+from geopy.distance import geodesic
 
 from pv_surrogate_eurocast.constants import GeoData, Paths, SystemData
 
@@ -70,7 +71,7 @@ def generate_circular_points(point, distance_km: int) -> gpd.GeoDataFrame:
 
     properties = point.to_dict()
     # delete unused property
-    del properties['geometry']
+    del properties["geometry"]
 
     bearings = [0, 72, 144, 216, 288]  # Bearings in degrees
 
@@ -79,17 +80,26 @@ def generate_circular_points(point, distance_km: int) -> gpd.GeoDataFrame:
         # Calculate the new point given the center, distance, and bearing
         radians(bearing)
         destination = geodesic(kilometers=distance_km).destination((lat, lon), bearing)
-        new_points.append({
-            'lat': destination.latitude,
-            'lon': destination.longitude,
-            'bearing': bearing,
-            'distance': distance_km,
-            **properties,
-        })
+        new_points.append(
+            {
+                "lat": destination.latitude,
+                "lon": destination.longitude,
+                "bearing": bearing,
+                "distance": distance_km,
+                **properties,
+            }
+        )
 
     return new_points
 
-def plot_points_on_map(natural_earth_data: str, country_name: str, points: gpd.GeoDataFrame, outward_points: gpd.GeoDataFrame, target_path: Path):
+
+def plot_points_on_map(
+    natural_earth_data: str,
+    country_name: str,
+    points: gpd.GeoDataFrame,
+    outward_points: gpd.GeoDataFrame,
+    target_path: Path,
+):
     # plotting
     world = gpd.read_file(natural_earth_data).to_crs(epsg=4326)
     _, ax = plt.subplots(figsize=(10, 10))
@@ -118,7 +128,6 @@ def main():
     # filtered_points.to_parquet(SystemData.german_starting_points)
     starting_points = gpd.read_parquet(SystemData.german_starting_points)
 
-
     new_points = []
     for _, point in starting_points.iterrows():
         for distance in range(5, radius_km * 2, 5):
@@ -127,13 +136,13 @@ def main():
             )
 
     outward_points = gpd.GeoDataFrame.from_records(new_points)
-    outward_points = (
-        gpd.GeoDataFrame(geometry=gpd.points_from_xy(outward_points['lon'], outward_points['lat']), data=outward_points)
-        .drop(columns=['lat', 'lon'])
-    )
+    outward_points = gpd.GeoDataFrame(
+        geometry=gpd.points_from_xy(outward_points["lon"], outward_points["lat"]), data=outward_points
+    ).drop(columns=["lat", "lon"])
     outward_points.to_parquet(SystemData.german_outward_points)
-    plot_points_on_map(natural_earth_data, country_name, starting_points, outward_points, Paths.figure_dir / "starting_points.pdf")
-
+    plot_points_on_map(
+        natural_earth_data, country_name, starting_points, outward_points, Paths.figure_dir / "starting_points.pdf"
+    )
 
 
 if __name__ == "__main__":
