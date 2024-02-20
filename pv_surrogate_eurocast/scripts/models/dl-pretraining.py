@@ -1,8 +1,8 @@
 import pandas as pd
 from ray.tune.search.hyperopt import HyperOptSearch
 from neuralforecast import NeuralForecast
-from neuralforecast.auto import AutoNHITS, AutoTFT
-from neuralforecast.losses.pytorch import SMAPE, MSE
+from neuralforecast.auto import AutoNHITS, AutoTFT, AutoMLP
+from neuralforecast.losses.pytorch import MSE
 from pv_surrogate_eurocast.constants import Paths, SystemData
 from pv_surrogate_eurocast.typedef import NormalizedPVGISSchema
 
@@ -23,34 +23,33 @@ def load_train_data(target_column: str):
         sum = pd.concat([sum, target])
     return sum
 
-def load_static_data():
-    return (
-        pd.read_parquet(SystemData.german_enriched_train_distribution)
-        .loc[:, ['sample_id', 'kwP', 'orientation', 'tilt']]
-        .rename(columns={'sample_id': 'unique_id'})
-    )
+def load_static_data(target: str):
+    if target == NormalizedPVGISSchema.global_irradiance:
+        return (
+            pd.read_parquet(SystemData.german_enriched_train_distribution)
+            .loc[:, ['sample_id', 'orientation', 'tilt']]
+            .rename(columns={'sample_id': 'unique_id'})
+        )
+    else:
+        return (
+            pd.read_parquet(SystemData.german_enriched_train_distribution)
+            .loc[:, ['sample_id', 'kwP', 'orientation', 'tilt']]
+            .rename(columns={'sample_id': 'unique_id'})
+        )
 
-def create_nhits_model(horizon: int):
-    # default config is used
-    # return AutoNHITS(h=horizon, loss=SMAPE(), search_alg=HyperOptSearch(), num_samples=100)
-    return AutoNHITS(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100)
-
-def create_tft_model(horizon: int):
-    # default config is used
-    # return AutoTFT(h=horizon, loss=SMAPE(), num_samples=100)
-    return AutoTFT(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100)
 
 def main():
     # load data for pretraining
-    for target in [NormalizedPVGISSchema.power, NormalizedPVGISSchema.global_irradiance]:
-        static_data = load_static_data()
+    for target in [NormalizedPVGISSchema.global_irradiance, NormalizedPVGISSchema.power]:
+        static_data = load_static_data(target)
         data = load_train_data(target)
 
         # fit neuralforecast models
         horizon = 24
         models = [
-            create_nhits_model(horizon),
-            create_tft_model(horizon),
+            AutoNHITS(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100),
+            AutoTFT(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100),
+            AutoMLP(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100),
         ]
         nf = NeuralForecast(models=models, freq='H')
         nf.fit(df=data, static_df=static_data, val_size=0, sort_df=True)
