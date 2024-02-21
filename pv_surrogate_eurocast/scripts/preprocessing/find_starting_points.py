@@ -101,18 +101,44 @@ def plot_points_on_map(
     target_path: Path,
 ):
     # plotting
-    world = gpd.read_file(natural_earth_data).to_crs(epsg=4326)
     _, ax = plt.subplots(figsize=(10, 10))
     ax.set_axis_off()
-    world[world["NAME"] == country_name].plot(ax=ax, color="white", edgecolor="black")
+
+    world = gpd.read_file(natural_earth_data).to_crs(epsg=4326)
+    country = world[world["NAME"] == country_name]
+    points = points.set_crs(country.crs).to_crs(epsg=4326)
+    outward_points = outward_points.set_crs(country.crs).to_crs(epsg=4326)
+
+    country.to_crs(epsg=4326).plot(ax=ax, color="white", edgecolor="black")
     points.plot(ax=ax, color="red", marker="x", markersize=20, label="Starting Points")
     outward_points.plot(ax=ax, color="blue", marker="o", markersize=10, label="Outward Points")
 
     for x, y, label in zip(points.geometry.x, points.geometry.y, points.sample_id):
-        ax.annotate(label, xy=(x, y), xytext=(3, 3), textcoords="offset points")
+        ax.annotate(label, xy=(x, y), xytext=(3, 15), textcoords="offset points")
 
     plt.legend(frameon=False, loc="upper right")
     plt.savefig(target_path)
+
+
+def calculate_points_outwards(
+    starting_points: gpd.GeoDataFrame,
+    max_radius_km: int,
+    target_path: Path,
+    initial_step_km: int = 5,
+    step_size_km: int = 5,
+) -> gpd.GeoDataFrame:
+    new_points = []
+    for _, point in starting_points.iterrows():
+        for distance in range(initial_step_km, max_radius_km, step_size_km):
+            new_points.extend(
+                generate_circular_points(point, distance),
+            )
+
+    outward_points = gpd.GeoDataFrame.from_records(new_points)
+    outward_points = gpd.GeoDataFrame(
+        geometry=gpd.points_from_xy(outward_points["lon"], outward_points["lat"]), data=outward_points
+    ).drop(columns=["lat", "lon"])
+    outward_points.to_parquet(target_path)
 
 
 def main():
@@ -124,22 +150,15 @@ def main():
     points = gpd.read_parquet(SystemData.german_enriched_test_distribution)
     points.set_crs(epsg=4326, inplace=True)
 
-    # filtered_points = filter_non_overlapping_points_within_country(country_shapefile, country_name, points, radius_km)
-    # filtered_points.to_parquet(SystemData.german_starting_points)
+    starting_points = filter_non_overlapping_points_within_country(natural_earth_data, country_name, points, radius_km)
+    starting_points.to_parquet(SystemData.german_starting_points)
+
+    # calculate_points_outwards(
+    #     starting_points, radius_km * 2, SystemData.german_outward_points
+    # )
+
     starting_points = gpd.read_parquet(SystemData.german_starting_points)
-
-    new_points = []
-    for _, point in starting_points.iterrows():
-        for distance in range(5, radius_km * 2, 5):
-            new_points.extend(
-                generate_circular_points(point, distance),
-            )
-
-    outward_points = gpd.GeoDataFrame.from_records(new_points)
-    outward_points = gpd.GeoDataFrame(
-        geometry=gpd.points_from_xy(outward_points["lon"], outward_points["lat"]), data=outward_points
-    ).drop(columns=["lat", "lon"])
-    outward_points.to_parquet(SystemData.german_outward_points)
+    outward_points = gpd.read_parquet(SystemData.german_outward_points)
     plot_points_on_map(
         natural_earth_data, country_name, starting_points, outward_points, Paths.figure_dir / "starting_points.pdf"
     )

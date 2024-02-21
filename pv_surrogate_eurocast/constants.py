@@ -6,6 +6,7 @@ class Paths:
 
     data_dir = project_dir.parents[0] / "data"
     results = project_dir.parents[0] / "results"
+    fixed_points_results_dl = results / "fixed_points_dl"
 
     system_data_dir = data_dir / "system_data"
     mastr_system_dir = data_dir / "open-mastr"
@@ -29,9 +30,12 @@ class Paths:
         Paths.data_dir.mkdir(parents=True, exist_ok=True)
         Paths.figure_dir.mkdir(parents=True, exist_ok=True)
         Paths.extrema_dir.mkdir(parents=True, exist_ok=True)
+
         Paths.pvgis_data_dir.mkdir(parents=True, exist_ok=True)
         Paths.pvgis_outward_data_dir.mkdir(parents=True, exist_ok=True)
         Paths.pvgis_fixed_location.mkdir(parents=True, exist_ok=True)
+
+        Paths.fixed_points_results_dl.mkdir(parents=True, exist_ok=True)
 
 
 class GeoData:

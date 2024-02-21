@@ -1,3 +1,4 @@
+
 import pandas as pd
 from neuralforecast import NeuralForecast
 from neuralforecast.auto import AutoMLP, AutoNHITS, AutoTFT
@@ -5,6 +6,7 @@ from neuralforecast.losses.pytorch import MSE
 from ray.tune.search.hyperopt import HyperOptSearch
 
 from pv_surrogate_eurocast.constants import Paths, SystemData
+from pv_surrogate_eurocast.scripts.helper import load_static_data
 from pv_surrogate_eurocast.typedef import NormalizedPVGISSchema
 
 
@@ -25,25 +27,10 @@ def load_train_data(target_column: str):
     return sum
 
 
-def load_static_data(target: str):
-    if target == NormalizedPVGISSchema.global_irradiance:
-        return (
-            pd.read_parquet(SystemData.german_enriched_train_distribution)
-            .loc[:, ["sample_id", "orientation", "tilt"]]
-            .rename(columns={"sample_id": "unique_id"})
-        )
-    else:
-        return (
-            pd.read_parquet(SystemData.german_enriched_train_distribution)
-            .loc[:, ["sample_id", "kwP", "orientation", "tilt"]]
-            .rename(columns={"sample_id": "unique_id"})
-        )
-
-
 def main():
     # load data for pretraining
     for target in [NormalizedPVGISSchema.global_irradiance, NormalizedPVGISSchema.power]:
-        static_data = load_static_data(target)
+        static_data = load_static_data(target, SystemData.german_enriched_train_distribution)
         data = load_train_data(target)
 
         # fit neuralforecast models
