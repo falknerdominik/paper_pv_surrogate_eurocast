@@ -44,9 +44,13 @@ class TimeSeriesLoader:
         metadata_parquet_path: Path,
         time_series_dir: Path,
         series_loader: Callable[[int, Any, Path], pd.DataFrame] = index_series_loader,
+        limit: int = None,
     ):
         self.metadata_parquet_path = metadata_parquet_path
         self.metadata = pd.read_parquet(metadata_parquet_path)
+        if limit is not None:
+            # limit provides an option to only load a subset of the data
+            self.metadata = self.metadata[0:limit]
         self.data_length = len(self.metadata)
 
         self.time_series_dir = time_series_dir
@@ -68,7 +72,7 @@ class TimeSeriesLoader:
         return self.data_length
 
 
-def eval_for_dl(metadata_path: str, target_column: str, data_dir: str):
+def eval_for_dl(metadata_path: str, target_column: str, data_dir: Path, target_dir: Path, limit: int = None):
     loader = TimeSeriesLoader(metadata_path, data_dir, sample_id_series_loader)
     nf = NeuralForecast.load(path=Paths.model_checkpoints)
     static_data = load_static_data(target_column, metadata_path)
@@ -79,8 +83,13 @@ def eval_for_dl(metadata_path: str, target_column: str, data_dir: str):
             .assign(unique_id=sample_id)
             .rename(columns={target_column: "y"})
         )
+
+        # predictions dataframe should contain the following columns:
+        # ds, AutoNHITS, AutoTFT, AutoMLP, y
         predictions = nf.predict(df=data, static_df=static_data, horizon=24, freq="H").reset_index()
-        predictions.to_parquet(Paths.fixed_points_results_dl / f"{sample_id}.parquet")
+        # joining
+        predictions = predictions.merge(data, on="ds", how="left")
+        predictions.to_parquet(target_dir / f"{sample_id}.parquet")
 
         # calculate total MAE
         y_true = data["y"].values
@@ -89,11 +98,62 @@ def eval_for_dl(metadata_path: str, target_column: str, data_dir: str):
             error = mae(y_hat, y_true)
             evaluations.append({"model": model, **static_data.loc[sample_id].to_dict(), "mae": error})
 
-    pd.DataFrame(evaluations).to_parquet(Paths.fixed_points_results_dl / "evaluations.parquet")
+    # evaluation dataframe should contain the following columns:
+    # model, unique_id, kwP, orientation, tilt, mae
+    pd.DataFrame(evaluations).to_parquet(target_dir / "evaluations.parquet")
+
+
+def eval_for_symreg(metadata_path: str, target_column: str, data_dir: Path, target_dir: Path, limit: int = None):
+    # TODO
+    pass
 
 
 def main():
-    eval_for_dl(SystemData.german_enriched_test_distribution, Paths.pvgis_fixed_location, NormalizedPVGISSchema.power)
+    # deep learning
+    eval_for_dl(
+        SystemData.german_enriched_test_distribution,
+        NormalizedPVGISSchema.power,
+        Paths.pvgis_data_dir,
+        Paths.general_test_results_dl,
+        limit=1000,
+    )
+    eval_for_dl(
+        SystemData.german_enriched_test_distribution,
+        NormalizedPVGISSchema.power,
+        Paths.pvgis_fixed_location,
+        Paths.fixed_points_results_dl,
+        limit=1000,
+    )
+    eval_for_dl(
+        SystemData.german_enriched_test_distribution,
+        NormalizedPVGISSchema.power,
+        Paths.pvgis_outward_data_dir,
+        Paths.outward_points_results_dl,
+        limit=1000,
+    )
+
+    # symbolic regression
+    eval_for_symreg(
+        SystemData.german_enriched_test_distribution,
+        NormalizedPVGISSchema.power,
+        Paths.pvgis_data_dir,
+        Paths.general_test_results_symreg,
+        limit=1000,
+    )
+    eval_for_symreg(
+        SystemData.german_enriched_test_distribution,
+        NormalizedPVGISSchema.power,
+        Paths.pvgis_fixed_location,
+        Paths.fixed_points_results_symreg,
+        limit=1000,
+    )
+    eval_for_symreg(
+        SystemData.german_enriched_test_distribution,
+        NormalizedPVGISSchema.power,
+        Paths.pvgis_outward_data_dir,
+        Paths.outward_points_results_symreg,
+        limit=1000,
+    )
 
 
 if __name__ == "__main__":

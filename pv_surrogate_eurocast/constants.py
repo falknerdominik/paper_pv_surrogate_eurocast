@@ -6,7 +6,14 @@ class Paths:
 
     data_dir = project_dir.parents[0] / "data"
     results = project_dir.parents[0] / "results"
+
+    general_test_results_dl = results / "general_test_dl"
     fixed_points_results_dl = results / "fixed_points_dl"
+    outward_points_results_dl = results / "outward_points_dl"
+
+    general_test_results_symreg = results / "general_test_symreg"
+    fixed_points_results_symreg = results / "fixed_points_symreg"
+    outward_points_results_symreg = results / "outward_points_symreg"
 
     system_data_dir = data_dir / "system_data"
     mastr_system_dir = data_dir / "open-mastr"
@@ -35,7 +42,15 @@ class Paths:
         Paths.pvgis_outward_data_dir.mkdir(parents=True, exist_ok=True)
         Paths.pvgis_fixed_location.mkdir(parents=True, exist_ok=True)
 
+        Paths.model_checkpoints.mkdir(parents=True, exist_ok=True)
+
+        Paths.general_test_results_dl.mkdir(parents=True, exist_ok=True)
         Paths.fixed_points_results_dl.mkdir(parents=True, exist_ok=True)
+        Paths.outward_points_results_dl.mkdir(parents=True, exist_ok=True)
+
+        Paths.general_test_results_symreg.mkdir(parents=True, exist_ok=True)
+        Paths.fixed_points_results_symreg.mkdir(parents=True, exist_ok=True)
+        Paths.outward_points_results_symreg.mkdir(parents=True, exist_ok=True)
 
 
 class GeoData:
