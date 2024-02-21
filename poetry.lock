@@ -2260,6 +2260,34 @@ files = [
 referencing = ">=0.31.0"
 
 [[package]]
+name = "juliacall"
+version = "0.9.15"
+description = "Julia and Python in seamless harmony"
+optional = false
+python-versions = "~=3.7"
+files = [
+    {file = "juliacall-0.9.15-py3-none-any.whl", hash = "sha256:b60e1225755455b8f0eff572cc7509b7220478e8b5e55b938c07321b8b0a7704"},
+    {file = "juliacall-0.9.15.tar.gz", hash = "sha256:08163ae1290dda155cdabdccc4035a4cf0c8e361522a5b3f8e6532401b4f29cc"},
+]
+
+[package.dependencies]
+juliapkg = ">=0.1.8,<0.2.0"
+
+[[package]]
+name = "juliapkg"
+version = "0.1.10"
+description = "Julia version manager and package manager"
+optional = false
+python-versions = "*"
+files = [
+    {file = "juliapkg-0.1.10-py3-none-any.whl", hash = "sha256:716a4e665bd3c9cc9321d45712d60ba624c50d64ec73b04a7f0ee962649c8f1b"},
+    {file = "juliapkg-0.1.10.tar.gz", hash = "sha256:70507318d51ac8663e856f56048764e49f5a0c4c90d81a3712d039a316369505"},
+]
+
+[package.dependencies]
+semantic-version = ">=2.9,<3.0"
+
+[[package]]
 name = "jupyter"
 version = "1.0.0"
 description = "Jupyter metapackage. Install all the Jupyter components in one go."
@@ -4818,6 +4846,26 @@ files = [
 ]
 
 [[package]]
+name = "pysr"
+version = "0.17.1"
+description = "Simple and efficient symbolic regression"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pysr-0.17.1-py3-none-any.whl", hash = "sha256:0cc5e2bdfe636967e4f507d9189186085096c9fd262b382d0eb66cc7cce9f4d7"},
+    {file = "pysr-0.17.1.tar.gz", hash = "sha256:3a92cbd6cae80c3a725a1b3df7cb0252c666252d2e9f4a83d31f838d1600ad50"},
+]
+
+[package.dependencies]
+click = ">=7.0.0,<9.0.0"
+juliacall = "0.9.15"
+numpy = ">=1.13.0,<2.0.0"
+pandas = ">=0.21.0,<3.0.0"
+scikit-learn = ">=1.0.0,<2.0.0"
+setuptools = ">=50.0.0"
+sympy = ">=1.0.0,<2.0.0"
+
+[[package]]
 name = "pytest"
 version = "7.4.4"
 description = "pytest: simple powerful testing with Python"
@@ -5856,6 +5904,21 @@ pandas = ">=1.2"
 dev = ["flake8", "flit", "mypy", "pandas-stubs", "pre-commit", "pytest", "pytest-cov", "pytest-xdist"]
 docs = ["ipykernel", "nbconvert", "numpydoc", "pydata_sphinx_theme (==0.10.0rc2)", "pyyaml", "sphinx (<6.0.0)", "sphinx-copybutton", "sphinx-design", "sphinx-issues"]
 stats = ["scipy (>=1.7)", "statsmodels (>=0.12)"]
+
+[[package]]
+name = "semantic-version"
+version = "2.10.0"
+description = "A library implementing the 'SemVer' scheme."
+optional = false
+python-versions = ">=2.7"
+files = [
+    {file = "semantic_version-2.10.0-py2.py3-none-any.whl", hash = "sha256:de78a3b8e0feda74cabc54aab2da702113e33ac9d9eb9d2389bcf1f58b7d9177"},
+    {file = "semantic_version-2.10.0.tar.gz", hash = "sha256:bdabb6d336998cbb378d4b9db3a4b56a1e3235701dc05ea2690d9a997ed5041c"},
+]
+
+[package.extras]
+dev = ["Django (>=1.11)", "check-manifest", "colorama (<=0.4.1)", "coverage", "flake8", "nose2", "readme-renderer (<25.0)", "tox", "wheel", "zest.releaser[recommended]"]
+doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "send2trash"
@@ -7094,4 +7157,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "f94da3107b8469520a16a578a766b9d5a381b57152694c0202fa6a203e901711"
+content-hash = "7a71a20ea57c9893e7a23779e72b0279b690f5cb6c0f744aa54579d85500722b"
