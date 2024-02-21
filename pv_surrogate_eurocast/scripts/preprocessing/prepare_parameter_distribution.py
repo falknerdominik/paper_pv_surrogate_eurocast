@@ -239,7 +239,7 @@ def draw_random_points_from_country(
 
 
 @task
-def draw_dataset(
+def generate_random_train_and_test_set(
     n: int,
     country_name: str,
     parameter_distribution_path: Path,
@@ -265,14 +265,14 @@ def draw_dataset(
     plot_compare_ground_truth_to_sample(
         parameters,
         train,
-        target_path=figure_path / f"{country_name}_train_sample_comparison.pdf",
+        target_path=figure_path / f"{country_name}_train_sample_comparison_limited.pdf",
         numerical_vars=["kwP", "tilt"],
         categorical_vars=["orientation"],
     )
     plot_compare_ground_truth_to_sample(
         parameters,
         test,
-        target_path=figure_path / f"{country_name}_test_sample_comparison.pdf",
+        target_path=figure_path / f"{country_name}_test_sample_comparison_limited.pdf",
         numerical_vars=["kwP", "tilt"],
         categorical_vars=["orientation"],
     )
@@ -357,7 +357,10 @@ def draw_sampled_locations_on_map(
 ):
     # Filter for a specific country, e.g., Germany
     world = gpd.read_file(natural_earth_data)
-    country = world[world["NAME"] == country_name].to_crs(epsg=4326)
+    country = world[world["NAME"] == country_name]
+    train_points = train_points.set_crs(country.crs).to_crs(epsg=4326)
+    test_points = test_points.set_crs(country.crs).to_crs(epsg=4326)
+    country = country.to_crs(epsg=4326)
 
     # Plot the country's boundary
     _, ax = plt.subplots(figsize=(10, 10))
@@ -390,9 +393,10 @@ def main():
     #     samples_target_path, SystemData.meta_german_systems, SystemData.german_system_parameter_distribution
     # )
 
+    # CAREFUL: This will take a new random sample!
     # distribution_path = SystemData.german_system_parameter_distribution
-    # draw_pretraining_dataset(
-    #     15000,
+    # generate_random_train_and_test_set(
+    #     3000,
     #     "Germany",
     #     distribution_path,
     #     SystemData.german_enriched_train_distribution,
@@ -403,8 +407,8 @@ def main():
     draw_sampled_locations_on_map(
         "Germany",
         GeoData.natural_earth_data,
-        gpd.read_parquet(SystemData.german_enriched_train_distribution),
-        gpd.read_parquet(SystemData.german_enriched_test_distribution),
+        gpd.read_parquet(SystemData.german_enriched_train_distribution)[0:2000],
+        gpd.read_parquet(SystemData.german_enriched_test_distribution)[0:1000],
         Paths.figure_dir / "sampled_locations.pdf",
     )
 

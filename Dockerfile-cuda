@@ -9,6 +9,10 @@ LABEL maintainer="Dominik Falkner <dominik.falkner@risc-software.at>"
 
 RUN apt-get update --allow-insecure-repositories && apt-get install -yq \ 
     build-essential \
+    # provides nohup command
+    coreutils \
+    # editor
+    vim \
     libssl-dev \
     zlib1g-dev \
     libbz2-dev \
@@ -48,6 +52,8 @@ ENV PATH="${PATH}:${POETRY_HOME}/bin"
 # Setup directory structure
 RUN mkdir /repo
 WORKDIR /repo
+# set pythonpath for nvidia image
+ENV PYTHONPATH "${PYTHONPATH}:/repo"
 
 # Install dependencies (package itself is not installed)
 COPY pyproject.toml poetry.lock .
