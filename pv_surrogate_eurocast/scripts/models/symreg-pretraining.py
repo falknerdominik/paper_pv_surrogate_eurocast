@@ -32,37 +32,40 @@ def load_data(target_column: str, limit: int = None) -> pd.DataFrame:
     sum = []
     for i in range(count_time_series):
         series = data.iloc[i]
-        target = pd.read_parquet(Paths.pvgis_data_dir / f"{series['sample_id']}.parquet")
-        target = (
-            target.loc[:, [NormalizedPVGISSchema.ds, target_column]]
-            .assign(unique_id=series["sample_id"])
-            .rename(columns={target_column: "y"})
-        )
-
-        lon = series.geometry.x
-        lat = series.geometry.y
-        target = (
-            # enrich with time based variables
-            enrich_with_covariates(target)
-            # enrich with known static values
-            .assign(
-                kwP=series['kwP'],
-                orientation=series['orientation'],
-                tilt=series['tilt'],
-                # remap lon/lat to x,y,z coordinates
-                x_pos=cos(lat) * cos(lon),
-                y_pos=cos(lat) * sin(lon), 
-                z_pos=sin(lat),
+        try:
+            target = pd.read_parquet(Paths.pvgis_data_dir / f"{series['sample_id']}.parquet")
+            target = (
+                target.loc[:, [NormalizedPVGISSchema.ds, target_column]]
+                .assign(unique_id=series["sample_id"])
+                .rename(columns={target_column: "y"})
             )
-        )
-        print(f'Loaded {i+1}/{count_time_series} time series')
+
+            lon = series.geometry.x
+            lat = series.geometry.y
+            target = (
+                # enrich with time based variables
+                enrich_with_covariates(target)
+                # enrich with known static values
+                .assign(
+                    kwP=series['kwP'],
+                    orientation=series['orientation'],
+                    tilt=series['tilt'],
+                    # remap lon/lat to x,y,z coordinates
+                    x_pos=cos(lat) * cos(lon),
+                    y_pos=cos(lat) * sin(lon), 
+                    z_pos=sin(lat),
+                )
+            )
+            print(f'Loaded {i+1}/{count_time_series} time series')
+        except:
+            print(f'Could not load {i+1}/{count_time_series} time series')
         sum.append(target)
-        sum = pd.concat(sum)
+    sum = pd.concat(sum)
     return sum
 
 
 def main():
-    p = load_data(NormalizedPVGISSchema.power, limit=2000)
+    p = load_data(NormalizedPVGISSchema.power, limit=10)
     y = p.y
     X = p.drop(columns=["y", "ds", 'unique_id'])
 
