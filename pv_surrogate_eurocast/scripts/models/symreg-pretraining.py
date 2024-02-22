@@ -12,9 +12,9 @@ def enrich_with_covariates(data: pd.DataFrame) -> pd.DataFrame:
         .assign(
             # Create covariates for time series forecasting, normalize them between -0.5 and 0.5
             hour_of_day=lambda df: df.ds.dt.hour / 23.0 - 0.5,
-            day_of_month=lambda df: (df.ds.dt.day - 1) / 30.0 - 0.5,
-            month=lambda df: (df.ds.dt.month - 1) / 11.0 - 0.5,
-            day_of_year=lambda df: (df.ds.dt.dayofyear - 1) / 365.0 - 0.5,
+            # day_of_month=lambda df: (df.ds.dt.day - 1) / 30.0 - 0.5,
+            # month=lambda df: (df.ds.dt.month - 1) / 11.0 - 0.5,
+            # day_of_year=lambda df: (df.ds.dt.dayofyear - 1) / 365.0 - 0.5,
             week_of_year=lambda df: (df.ds.dt.isocalendar().week - 1) / 52.0 - 0.5,
         )
     )
@@ -27,9 +27,9 @@ def load_data(target_column: str, limit: int = None) -> pd.DataFrame:
     if limit is not None:
         count_time_series = limit
     else:
-        count_time_series = data.shape[0]
+        count_time_series = min(limit, data.shape[0])
 
-    sum = pd.DataFrame()
+    sum = []
     for i in range(count_time_series):
         series = data.iloc[i]
         target = pd.read_parquet(Paths.pvgis_data_dir / f"{series['sample_id']}.parquet")
@@ -56,7 +56,8 @@ def load_data(target_column: str, limit: int = None) -> pd.DataFrame:
             )
         )
         print(f'Loaded {i+1}/{count_time_series} time series')
-        sum = pd.concat([sum, target])
+        sum.append(target)
+        sum = pd.concat(sum)
     return sum
 
 
