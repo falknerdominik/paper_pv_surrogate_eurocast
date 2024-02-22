@@ -55,12 +55,13 @@ def load_data(target_column: str, limit: int = None) -> pd.DataFrame:
                 z_pos=sin(lat),
             )
         )
+        print(f'Loaded {i+1}/{count_time_series} time series')
         sum = pd.concat([sum, target])
     return sum
 
 
 def main():
-    p = load_data(NormalizedPVGISSchema.power, limit=10)
+    p = load_data(NormalizedPVGISSchema.power, limit=2000)
     y = p.y
     X = p.drop(columns=["y", "ds", 'unique_id'])
 
@@ -69,8 +70,9 @@ def main():
         unary_operators=["sin"],
         batching=True, batch_size=1000,
         nested_constraints={"sin": {"sin": 0}},
-        population_size=100,
-        maxsize=100,
+        maxsize=50,
+        population_size=64,
+        select_k_features=5,
     )
     model.fit(X, y)
     print(model)
