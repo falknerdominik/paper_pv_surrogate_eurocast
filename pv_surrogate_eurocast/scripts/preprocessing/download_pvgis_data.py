@@ -118,6 +118,8 @@ def main():
 
     # download outward points
     # pvgis_configurations = read_configurations.fn(SystemData.german_outward_points)
+    outward_points = [remap_configuration_outward_points(config) for config in pvgis_configurations]
+    pd.DataFrame.from_dict(outward_points).to_parquet(SystemData.german_outward_points)
     # Parallel(n_jobs=4)(
     #     delayed(download_and_save_pvgis_data.fn)(
     #         remap_configuration_outward_points(config), Paths.pvgis_outward_data_dir
@@ -126,16 +128,18 @@ def main():
     # )
 
     # download data for a single location and many different parameters by using the parameters provided in the test set
-    pvgis_configurations = read_configurations.fn(SystemData.german_enriched_test_distribution)
     # fix location
+    pvgis_configurations = read_configurations.fn(SystemData.german_enriched_test_distribution)
     lon = pvgis_configurations[0]["lon"]
     lat = pvgis_configurations[0]["lat"]
-    Parallel(n_jobs=4)(
-        delayed(download_and_save_pvgis_data.fn)(
-            remap_config_fix_location(config, lon=lon, lat=lat), Paths.pvgis_fixed_location
-        )
-        for config in pvgis_configurations
-    )
+    fixed_location = [remap_config_fix_location(config, lon=lon, lat=lat) for config in pvgis_configurations]
+    pd.DataFrame.from_dict(fixed_location).to_parquet(SystemData.german_fixed_location_points)
+    # Parallel(n_jobs=4)(
+    #     delayed(download_and_save_pvgis_data.fn)(
+    #         config, Paths.pvgis_fixed_location
+    #     )
+    #     for config in pvgis_configurations
+    # )
 
 
 if __name__ == "__main__":

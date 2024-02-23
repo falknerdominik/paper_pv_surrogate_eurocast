@@ -78,6 +78,8 @@ class SystemData:
     german_starting_points = Paths.system_data_dir / "german_starting_points.parquet"
     german_outward_points = Paths.system_data_dir / "german_outward_points.parquet"
 
+    german_fixed_location_points = Paths.system_data_dir / "german_fixed_location.parquet"
+
 
 class ModulesNearsGeoshpereReport:
     near_1_km = Paths.results / "modules_near_geoshpere_1km.png"

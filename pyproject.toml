@@ -43,6 +43,7 @@ geopy = "^2.4.1"
 neuralforecast = "^1.6.4"
 hyperopt = "^0.2.7"
 pysr = "^0.17.1"
+pvlib = "^0.10.3"
 [tool.poetry.group.dev.dependencies]  
 poethepoet = "^0.20.0"
 black = { version = "^23.3.0", extras = ["jupyter"] }

@@ -109,51 +109,52 @@ def eval_for_symreg(metadata_path: str, target_column: str, data_dir: Path, targ
 
 
 def main():
+    pass
     # deep learning
-    eval_for_dl(
-        SystemData.german_enriched_test_distribution,
-        NormalizedPVGISSchema.power,
-        Paths.pvgis_data_dir,
-        Paths.general_test_results_dl,
-        limit=1000,
-    )
-    eval_for_dl(
-        SystemData.german_enriched_test_distribution,
-        NormalizedPVGISSchema.power,
-        Paths.pvgis_fixed_location,
-        Paths.fixed_points_results_dl,
-        limit=1000,
-    )
-    eval_for_dl(
-        SystemData.german_enriched_test_distribution,
-        NormalizedPVGISSchema.power,
-        Paths.pvgis_outward_data_dir,
-        Paths.outward_points_results_dl,
-        limit=1000,
-    )
+    # eval_for_dl(
+    #     SystemData.german_enriched_test_distribution,
+    #     NormalizedPVGISSchema.power,
+    #     Paths.pvgis_data_dir,
+    #     Paths.general_test_results_dl,
+    #     limit=1000,
+    # )
+    # eval_for_dl(
+    #     SystemData.german_enriched_test_distribution,
+    #     NormalizedPVGISSchema.power,
+    #     Paths.pvgis_fixed_location,
+    #     Paths.fixed_points_results_dl,
+    #     limit=1000,
+    # )
+    # eval_for_dl(
+    #     SystemData.german_enriched_test_distribution,
+    #     NormalizedPVGISSchema.power,
+    #     Paths.pvgis_outward_data_dir,
+    #     Paths.outward_points_results_dl,
+    #     limit=1000,
+    # )
 
     # symbolic regression
-    eval_for_symreg(
-        SystemData.german_enriched_test_distribution,
-        NormalizedPVGISSchema.power,
-        Paths.pvgis_data_dir,
-        Paths.general_test_results_symreg,
-        limit=1000,
-    )
-    eval_for_symreg(
-        SystemData.german_enriched_test_distribution,
-        NormalizedPVGISSchema.power,
-        Paths.pvgis_fixed_location,
-        Paths.fixed_points_results_symreg,
-        limit=1000,
-    )
-    eval_for_symreg(
-        SystemData.german_enriched_test_distribution,
-        NormalizedPVGISSchema.power,
-        Paths.pvgis_outward_data_dir,
-        Paths.outward_points_results_symreg,
-        limit=1000,
-    )
+    # eval_for_symreg(
+    #     SystemData.german_enriched_test_distribution,
+    #     NormalizedPVGISSchema.power,
+    #     Paths.pvgis_data_dir,
+    #     Paths.general_test_results_symreg,
+    #     limit=1000,
+    # )
+    # eval_for_symreg(
+    #     SystemData.german_enriched_test_distribution,
+    #     NormalizedPVGISSchema.power,
+    #     Paths.pvgis_fixed_location,
+    #     Paths.fixed_points_results_symreg,
+    #     limit=1000,
+    # )
+    # eval_for_symreg(
+    #     SystemData.german_enriched_test_distribution,
+    #     NormalizedPVGISSchema.power,
+    #     Paths.pvgis_outward_data_dir,
+    #     Paths.outward_points_results_symreg,
+    #     limit=1000,
+    # )
 
 
 if __name__ == "__main__":
