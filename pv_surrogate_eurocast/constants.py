@@ -7,19 +7,21 @@ class Paths:
     data_dir = project_dir.parents[0] / "data"
     results = project_dir.parents[0] / "results"
 
-    general_test_results_dl = results / "general_test_dl"
-    fixed_points_results_dl = results / "fixed_points_dl"
-    outward_points_results_dl = results / "outward_points_dl"
-
-    general_test_results_symreg = results / "general_test_symreg"
-    fixed_points_results_symreg = results / "fixed_points_symreg"
-    outward_points_results_symreg = results / "outward_points_symreg"
-
     system_data_dir = data_dir / "system_data"
     mastr_system_dir = data_dir / "open-mastr"
     pvgis_data_dir = data_dir / "pvgis"
     pvgis_outward_data_dir = data_dir / "pvgis_outward"
     pvgis_fixed_location = data_dir / "pvgis_fixed_location"
+
+    general_test_results_dl = results / "general_test_dl"
+    fixed_points_results_dl = results / "fixed_points_dl"
+    outward_points_results_dl = results / "outward_points_dl"
+
+    general_test_results_symreg = results / "general_test_symreg"
+    general_test_results_symreg_parquet = general_test_results_symreg / 'results.parquet'
+    fixed_test_results_symreg_parquet = pvgis_fixed_location / 'evaluation.parquet'
+    fixed_points_results_symreg = results / "fixed_points_symreg"
+    outward_points_results_symreg = results / "outward_points_symreg"
 
     cache_dir = data_dir / "cache"
 

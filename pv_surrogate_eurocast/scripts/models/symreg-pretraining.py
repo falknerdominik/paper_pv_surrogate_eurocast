@@ -1,5 +1,6 @@
 from math import cos, sin, pow
 from pathlib import Path
+from typing import Callable
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -80,22 +81,29 @@ def load_data(target_column: str, limit: int = None) -> pd.DataFrame:
             lat = series.geometry.y
             is_sun_up = is_sun_up_series(target.ds, lat, lon)
             target = target.assign(is_sun_up=is_sun_up)
+
+            # normalize parameter and convert to kW
+            if target_column == NormalizedPVGISSchema.power:
+                target.y = target.y / 1000
+
             target = target.groupby('unique_id').resample('D', on='ds').sum().drop(columns=['unique_id']).reset_index()
             target = (
                 # enrich with time based variables
                 enrich_with_covariates(target)
                 # enrich with known static values
                 .assign(
-                    wP=series['kwP'],
+                    kwP=series['kwP'],
                     orientation=series['orientation'],
                     tilt=series['tilt'],
                     # remap lon/lat to x,y,z coordinates
-                    x_pos=cos(lat) * cos(lon),
-                    y_pos=cos(lat) * sin(lon), 
-                    z_pos=sin(lat),
+                    lat=lat,
+                    lon=lon,
+                    # x_pos=cos(lat) * cos(lon),
+                    # y_pos=cos(lat) * sin(lon), 
+                    # z_pos=sin(lat),
                 )
             )
-            target = target[:(365 * 2)]
+            target = target[:(365)]
             sum.append(target)
             print(f'Loaded {i+1}/{count_time_series} time series')
         except Exception as e:
@@ -104,19 +112,36 @@ def load_data(target_column: str, limit: int = None) -> pd.DataFrame:
     sum = pd.concat(sum)
     return sum
 
-def symreg_series_loader(target_column: str) -> tuple[int, pd.DataFrame, pd.Series]:
+def file_name_path_standard(row):
+    return f'{row["sample_id"]}.parquet'
+
+def file_name_path_outward(row):
+    return f'{row["sample_id"]}_{row["bearing"]}_{row["distance"]}.parquet'
+
+def symreg_series_loader(target_column: str, path_builder: Callable = file_name_path_standard) -> tuple[int, pd.DataFrame, pd.Series]:
 
     def symreg_series_loader_intern(index: int, row: pd.Series, time_series_dir: Path) -> tuple[int, pd.DataFrame, pd.Series]:
         try:
-            target = pd.read_parquet(time_series_dir / f"{row['sample_id']}.parquet")
+            # if fixed point
+            target = pd.read_parquet(time_series_dir / path_builder(row))
+            # if normal
+            # target = gpd.read_parquet(time_series_dir / path_builder(row))
             target = (
                 target.loc[:, [NormalizedPVGISSchema.ds, target_column]]
                 .assign(unique_id=row["sample_id"])
                 .rename(columns={target_column: "y"})
             )
 
+            # if fixed point
+            # lon = row.lon
+            # lat = row.lat
+            # if normal
             lon = row.geometry.x
             lat = row.geometry.y
+            # normalize parameter and convert to kW
+            if target_column == NormalizedPVGISSchema.power:
+                target.y = target.y / 1000
+
             is_sun_up = is_sun_up_series(target.ds, lat, lon)
             target = target.assign(is_sun_up=is_sun_up)
             target = target.groupby('unique_id').resample('D', on='ds').sum().drop(columns=['unique_id']).reset_index()
@@ -125,16 +150,22 @@ def symreg_series_loader(target_column: str) -> tuple[int, pd.DataFrame, pd.Seri
                 enrich_with_covariates(target)
                 # enrich with known static values
                 .assign(
-                    wP=row['kwP'],
+                    # if normal
+                    kwP=row['kwP'],
                     orientation=row['orientation'],
                     tilt=row['tilt'],
+
+                    # if fixed point
+                    # kwP=row['peakpower'],
+                    # orientation=row['aspect'],
+                    # tilt=row['angle'],
+
                     # remap lon/lat to x,y,z coordinates
-                    x_pos=cos(lat) * cos(lon),
-                    y_pos=cos(lat) * sin(lon), 
-                    z_pos=sin(lat),
+                    lat=lat,
+                    lon=lon,
                 )
             )
-            target = target[:(365 * 3)]
+            target = target[:(365)]
             target = target.sample(frac=1)
             return row['sample_id'], target.drop(columns=["y", "ds", 'unique_id']), target.y
         except Exception as e:
@@ -163,31 +194,75 @@ def train(target_column: str, limit: int | None = None):
     print('h')
 
 
-def test(equation_file: Path, metadata_path: str, target_column: str, data_dir: Path, target_path: Path, limit: int = None):
-    loader = TimeSeriesLoader(metadata_path, data_dir, symreg_series_loader(target_column))
+def test(
+        equation_file: Path, metadata_path: str, target_column: str, data_dir: Path, target_path: Path, limit: int = None,
+        path_builder: Callable = file_name_path_standard
+):
+    loader = TimeSeriesLoader(metadata_path, data_dir, symreg_series_loader(target_column, path_builder))
     model = PySRRegressor.from_file(str(equation_file))
-    r2_scores = []
-    for sample_id, X, y in loader:
+    scores = []
+    for index, (sample_id, X, y) in enumerate(loader):
+
         if X is None or y is None:
             print(f'Skipped {sample_id}')
             continue
-        r2_scores = model.score(X, y).mean()
-        print('h')
-    print(np.mean(r2_scores))
+        else:
+            print(f'Sample {sample_id} loaded')
 
-    pass
+        try:
+            prediction = model.predict(X)
+        except Exception as e:
+            print(f'Skipped Sample {sample_id}')
+            continue
+
+        result = pd.DataFrame({
+            'SymReg': prediction,
+            'y': y,
+            'MAE': abs(prediction-y),
+            'MAPE': abs(prediction-y) / y
+        })
+        results_with_params = pd.concat([X, result], axis=1).mean()
+        # lat, lon = cartesian_to_spherical(**results_with_params[['x_pos', 'y_pos', 'z_pos']].to_dict())
+        scores.append({
+            'sample_id': sample_id,
+            'model': 'SymReg',
+            'lat': results_with_params.lat,
+            'lon': results_with_params.lon,
+            'kwP': results_with_params.kwP,
+            'orientation': results_with_params.orientation,
+            'tilt': results_with_params.tilt,
+            'MAE': results_with_params.MAE,
+            'MAPE': results_with_params.MAPE,
+            'R2': model.score(X, y).mean(),
+        })
+
+        if index >= limit:
+            break
+    aggregated_results = pd.DataFrame.from_dict(scores)
+    aggregated_results.to_parquet(target_path)
+
 
 def main():
-    target_column = NormalizedPVGISSchema.power
-    # train(target_column, limit=100)
+    target_column = NormalizedPVGISSchema.global_irradiance
+    # train(target_column, limit=500)
     test(
         Paths.symreg_model, 
-        SystemData.german_enriched_test_distribution,
+        SystemData.german_outward_points,
         target_column,
-        Paths.pvgis_data_dir,
-        Paths.general_test_results_symreg,
-        limit=100
+        Paths.pvgis_outward_data_dir,
+        Paths.pvgis_outward_data_dir / 'evaluation.parquet',
+        limit=1000,
+        path_builder=file_name_path_outward
     )
+    # test(
+    #     Paths.symreg_model, 
+    #     SystemData.german_fixed_location_points,
+    #     target_column,
+    #     Paths.pvgis_fixed_location,
+    #     Paths.pvgis_fixed_location / 'evaluation.parquet',
+    #     limit=1000,
+    #     path_builder=file_name_path_standard,
+    # )
 
 
 if __name__ == '__main__':

@@ -48,6 +48,9 @@ class TimeSeriesLoader:
         limit: int = None,
     ):
         self.metadata_parquet_path = metadata_parquet_path
+        # normal
+        # self.metadata = pd.read_parquet(metadata_parquet_path)
+        # fixed points
         self.metadata = gpd.read_parquet(metadata_parquet_path)
         if limit is not None:
             # limit provides an option to only load a subset of the data

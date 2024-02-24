@@ -347,6 +347,71 @@ def plot_compare_ground_truth_to_sample(
     plt.savefig(str(target_path), bbox_inches="tight", format="pdf")
 
 
+def plot_ground_truth(
+    ground_truth: pd.DataFrame,
+    target_path: Path,
+    numerical_vars: list = [],
+    categorical_vars: list = [],
+):
+    """
+    Plots and compares the distribution of variables between the ground truth and sample DataFrames.
+
+    Args:
+        ground_truth (pd.DataFrame): DataFrame containing the ground truth data.
+        sample (pd.DataFrame): DataFrame containing the sample data.
+        target_path (Path): Path to save the plot.
+        numerical_vars (list, optional): List of numerical variables to plot. Default is an empty list.
+        categorical_vars (list, optional): List of categorical variables to plot. Default is an empty list.
+
+    Raises:
+        ValueError: If there are no variables to plot or if the ground truth
+        and sample DataFrames do not have the same columns.
+
+    Returns:
+        None
+    """
+    # Creating overlapping histograms for 'kwP' and 'tilt', and a count plot for 'orientation'
+    variable_count = len(numerical_vars) + len(categorical_vars)
+    maximum_columns_per_row = 3
+
+    if variable_count == 0:
+        raise ValueError("No variables to plot!")
+
+    all_vars = numerical_vars + categorical_vars
+    if not np.isin(all_vars, ground_truth.columns).all():
+        raise ValueError("The ground truth and sample DataFrames do not have the same columns! Please check the input.")
+
+    number_of_columns = min(maximum_columns_per_row, len(numerical_vars) + len(categorical_vars))
+    number_of_rows = variable_count // maximum_columns_per_row + (
+        1 if variable_count % maximum_columns_per_row > 0 else 0
+    )
+    _, axs = plt.subplots(number_of_rows, number_of_columns, figsize=(6 * number_of_columns, 6 * number_of_rows))
+
+    # Handle the case of a single subplot (not in a list)
+    if number_of_rows * number_of_columns == 1:
+        axs = [axs]
+    # Flatten the axs array in case of multiple rows and columns
+    axs = axs.flatten()
+
+    # Plotting histograms for 'kwP' and 'tilt'
+    for i, var in enumerate(numerical_vars):
+        sns.kdeplot(ground_truth[var], ax=axs[i], color="skyblue", alpha=0.5, label="Ground Truth", fill=True)
+        axs[i].set_title(f"Comparison of {var}")
+        axs[i].legend()
+
+    # For the categorical variable 'orientation', plotting counts
+    # Adjusting the third plot for 'orientation'
+    for i, var in enumerate(categorical_vars, start=len(numerical_vars)):
+        sns.countplot(
+            x=var, data=ground_truth, ax=axs[i], alpha=0.5, color="skyblue", label="Ground Truth", stat="percent"
+        )
+        axs[i].set_title(f"Comparison of {var}")
+        axs[i].legend()
+
+    plt.tight_layout()
+    plt.savefig(str(target_path), bbox_inches="tight", format="pdf")
+
+
 @task
 def draw_sampled_locations_on_map(
     country_name: str,
@@ -404,12 +469,21 @@ def main():
     #     Paths.figure_dir,
     # )
 
-    draw_sampled_locations_on_map(
-        "Germany",
-        GeoData.natural_earth_data,
-        gpd.read_parquet(SystemData.german_enriched_train_distribution)[0:2000],
-        gpd.read_parquet(SystemData.german_enriched_test_distribution)[0:1000],
-        Paths.figure_dir / "sampled_locations.pdf",
+    # draw_sampled_locations_on_map(
+    #     "Germany",
+    #     GeoData.natural_earth_data,
+    #     gpd.read_parquet(SystemData.german_enriched_train_distribution)[0:2000],
+    #     gpd.read_parquet(SystemData.german_enriched_test_distribution)[0:1000],
+    #     Paths.figure_dir / "sampled_locations.pdf",
+    # )
+
+    # plot ground truth
+    parameters = pd.read_parquet(SystemData.german_system_parameter_distribution)
+    plot_ground_truth(
+        parameters,
+        target_path=Paths.figure_dir / f"Germany_ground_truth.pdf",
+        numerical_vars=["kwP", "tilt"],
+        categorical_vars=["orientation"],
     )
 
 

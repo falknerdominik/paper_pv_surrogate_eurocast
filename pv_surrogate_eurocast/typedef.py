@@ -63,7 +63,7 @@ class NormalizedPVGISSchema(pa.SchemaModel):
     global_irradiance: float = pa.Field(ge=0)  # Assuming global irradiance should be >= 0
     sun_height: float = pa.Field()
     temperature_at_2_m: float = pa.Field()
-    wind_speed_at_10_m: float = pa.Field(ge=0)  # Assuming wind speed should be >= 0
+    wind_speed_at_10_m: float = pa.Field()
     is_reconstructed: int = pa.Field(ge=0, le=1)  # Assuming binary values 0 or 1
 
     class Config:
