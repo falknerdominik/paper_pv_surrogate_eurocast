@@ -2,7 +2,7 @@ import pandas as pd
 from neuralforecast import NeuralForecast
 from neuralforecast.auto import AutoMLP, AutoNHITS, AutoTFT
 from neuralforecast.losses.pytorch import MSE, MAPE
-from neuralforecast.models import LSTM, NHITS, RNN, MLP
+from neuralforecast.models import LSTM, NHITS, RNN, MLP, PatchTST
 from ray.tune.search.hyperopt import HyperOptSearch
 
 from pv_surrogate_eurocast.constants import Paths, SystemData

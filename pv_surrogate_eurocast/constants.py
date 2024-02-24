@@ -27,6 +27,8 @@ class Paths:
     extrema_dir = figure_dir / "extrema"
 
     model_checkpoints = data_dir / "model_checkpoints"
+    symreg = model_checkpoints / "symreg"
+    symreg_model = symreg / "model.csv"
 
     @staticmethod
     def ensure_directories_exists():
@@ -43,6 +45,7 @@ class Paths:
         Paths.pvgis_fixed_location.mkdir(parents=True, exist_ok=True)
 
         Paths.model_checkpoints.mkdir(parents=True, exist_ok=True)
+        Paths.symreg.mkdir(parents=True, exist_ok=True)
 
         Paths.general_test_results_dl.mkdir(parents=True, exist_ok=True)
         Paths.fixed_points_results_dl.mkdir(parents=True, exist_ok=True)

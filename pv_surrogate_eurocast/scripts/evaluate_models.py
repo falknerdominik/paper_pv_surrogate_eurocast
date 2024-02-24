@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 import pandas as pd
+import geopandas as gpd
 from neuralforecast import NeuralForecast
 from neuralforecast.losses.numpy import mae
 
@@ -47,7 +48,7 @@ class TimeSeriesLoader:
         limit: int = None,
     ):
         self.metadata_parquet_path = metadata_parquet_path
-        self.metadata = pd.read_parquet(metadata_parquet_path)
+        self.metadata = gpd.read_parquet(metadata_parquet_path)
         if limit is not None:
             # limit provides an option to only load a subset of the data
             self.metadata = self.metadata[0:limit]
@@ -57,12 +58,12 @@ class TimeSeriesLoader:
 
         self.series_loader = series_loader
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int, **kwargs):
         if index < 0 or index >= self.data_length:
             raise IndexError("Index out of bounds")
 
         row = self.metadata.iloc[index]
-        return self.series_loader(index, row, self.time_series_dir)
+        return self.series_loader(index, row, self.time_series_dir, **kwargs)
 
     def __iter__(self):
         for i in range(self.data_length):
@@ -86,7 +87,7 @@ def eval_for_dl(metadata_path: str, target_column: str, data_dir: Path, target_d
 
         # predictions dataframe should contain the following columns:
         # ds, AutoNHITS, AutoTFT, AutoMLP, y
-        predictions = nf.predict(df=data, static_df=static_data, horizon=24, freq="H").reset_index()
+        predictions = nf.predict(df=data, static_df=static_data, horizon=24, freq="H")
         # joining
         predictions = predictions.merge(data, on="ds", how="left")
         predictions.to_parquet(target_dir / f"{sample_id}.parquet")
@@ -111,13 +112,13 @@ def eval_for_symreg(metadata_path: str, target_column: str, data_dir: Path, targ
 def main():
     pass
     # deep learning
-    # eval_for_dl(
-    #     SystemData.german_enriched_test_distribution,
-    #     NormalizedPVGISSchema.power,
-    #     Paths.pvgis_data_dir,
-    #     Paths.general_test_results_dl,
-    #     limit=1000,
-    # )
+    eval_for_dl(
+        SystemData.german_enriched_test_distribution,
+        NormalizedPVGISSchema.power,
+        Paths.pvgis_data_dir,
+        Paths.general_test_results_dl,
+        limit=1000,
+    )
     # eval_for_dl(
     #     SystemData.german_enriched_test_distribution,
     #     NormalizedPVGISSchema.power,
