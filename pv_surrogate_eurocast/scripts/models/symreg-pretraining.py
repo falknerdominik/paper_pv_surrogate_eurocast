@@ -118,6 +118,61 @@ def file_name_path_standard(row):
 def file_name_path_outward(row):
     return f'{row["sample_id"]}_{row["bearing"]}_{row["distance"]}.parquet'
 
+def symreg_outward_series_loader(target_column: str, path_builder: Callable = file_name_path_standard) -> tuple[int, pd.DataFrame, pd.Series]:
+
+    def symreg_series_loader_intern(index: int, row: pd.Series, time_series_dir: Path) -> tuple[int, pd.DataFrame, pd.Series]:
+        try:
+            # if fixed point
+            target = pd.read_parquet(time_series_dir / path_builder(row))
+            # if normal
+            # target = gpd.read_parquet(time_series_dir / path_builder(row))
+            target = (
+                target.loc[:, [NormalizedPVGISSchema.ds, target_column]]
+                .assign(unique_id=row["sample_id"])
+                .rename(columns={target_column: "y"})
+            )
+
+            # if fixed point
+            # lon = row.lon
+            # lat = row.lat
+            # if normal
+            lon = row.geometry.x
+            lat = row.geometry.y
+            # normalize parameter and convert to kW
+            if target_column == NormalizedPVGISSchema.power:
+                target.y = target.y / 1000
+
+            is_sun_up = is_sun_up_series(target.ds, lat, lon)
+            target = target.assign(is_sun_up=is_sun_up)
+            target = target.groupby('unique_id').resample('D', on='ds').sum().drop(columns=['unique_id']).reset_index()
+            target = (
+                # enrich with time based variables
+                enrich_with_covariates(target)
+                # enrich with known static values
+                .assign(
+                    # if normal
+                    kwP=row['kwP'],
+                    orientation=row['orientation'],
+                    tilt=row['tilt'],
+
+                    # if fixed point
+                    # kwP=row['peakpower'],
+                    # orientation=row['aspect'],
+                    # tilt=row['angle'],
+
+                    # remap lon/lat to x,y,z coordinates
+                    lat=lat,
+                    lon=lon,
+                )
+            )
+            target = target[:(365)]
+            target = target.sample(frac=1)
+            return row['sample_id'], row['bearing'], row['distance'], target.drop(columns=["y", "ds", 'unique_id']), target.y
+        except Exception as e:
+            return row['sample_id'], None, None, None, None
+        
+    return symreg_series_loader_intern
+
 def symreg_series_loader(target_column: str, path_builder: Callable = file_name_path_standard) -> tuple[int, pd.DataFrame, pd.Series]:
 
     def symreg_series_loader_intern(index: int, row: pd.Series, time_series_dir: Path) -> tuple[int, pd.DataFrame, pd.Series]:
@@ -198,10 +253,12 @@ def test(
         equation_file: Path, metadata_path: str, target_column: str, data_dir: Path, target_path: Path, limit: int = None,
         path_builder: Callable = file_name_path_standard
 ):
-    loader = TimeSeriesLoader(metadata_path, data_dir, symreg_series_loader(target_column, path_builder))
+    loader = TimeSeriesLoader(metadata_path, data_dir, symreg_outward_series_loader(target_column, path_builder))
+    metadata = gpd.read_parquet(metadata_path)
     model = PySRRegressor.from_file(str(equation_file))
     scores = []
-    for index, (sample_id, X, y) in enumerate(loader):
+    # for index, (sample_id, X, y) in enumerate(loader):
+    for index, (sample_id, bearing, distance, X, y) in enumerate(loader):
 
         if X is None or y is None:
             print(f'Skipped {sample_id}')
@@ -222,10 +279,11 @@ def test(
             'MAPE': abs(prediction-y) / y
         })
         results_with_params = pd.concat([X, result], axis=1).mean()
-        # lat, lon = cartesian_to_spherical(**results_with_params[['x_pos', 'y_pos', 'z_pos']].to_dict())
         scores.append({
             'sample_id': sample_id,
             'model': 'SymReg',
+            'bearing': bearing,
+            'distance': distance,
             'lat': results_with_params.lat,
             'lon': results_with_params.lon,
             'kwP': results_with_params.kwP,
