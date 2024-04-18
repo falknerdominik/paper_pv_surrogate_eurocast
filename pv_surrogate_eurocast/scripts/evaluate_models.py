@@ -4,7 +4,7 @@ from typing import Any, Callable
 import pandas as pd
 import geopandas as gpd
 from neuralforecast import NeuralForecast
-from neuralforecast.losses.numpy import mae
+from neuralforecast.losses.numpy import mae, mape
 
 from pv_surrogate_eurocast.constants import Paths, SystemData
 from pv_surrogate_eurocast.scripts.helper import load_static_data
@@ -78,7 +78,7 @@ class TimeSeriesLoader:
 
 def eval_for_dl(metadata_path: str, target_column: str, data_dir: Path, target_dir: Path, limit: int = None):
     loader = TimeSeriesLoader(metadata_path, data_dir, sample_id_series_loader)
-    nf = NeuralForecast.load(path=Paths.model_checkpoints)
+    nf = NeuralForecast.load(path=Paths.model_checkpoints / 'power_pretraining')
     static_data = load_static_data(target_column, metadata_path)
     evaluations = []
     for sample_id, module in loader:
@@ -90,26 +90,32 @@ def eval_for_dl(metadata_path: str, target_column: str, data_dir: Path, target_d
 
         # predictions dataframe should contain the following columns:
         # ds, AutoNHITS, AutoTFT, AutoMLP, y
-        predictions = nf.predict(df=data, static_df=static_data, horizon=24, freq="H")
-        # joining
-        predictions = predictions.merge(data, on="ds", how="left")
-        predictions.to_parquet(target_dir / f"{sample_id}.parquet")
+        predictions = []
+        for index in range(1, data.shape[0] -1):
+            pred = nf.predict(df=data[0:index], static_df=static_data)
+            # joining
+            pred = pred.merge(data, on="ds", how="left")
+            predictions.append(pred.iloc[0].to_dict())
+            if index == 365:
+                break
 
-        # calculate total MAE
-        y_true = data["y"].values
-        for model in ["AutoNHITS", "AutoTFT", "AutoMLP"]:
-            y_hat = predictions[model].values
-            error = mae(y_hat, y_true)
-            evaluations.append({"model": model, **static_data.loc[sample_id].to_dict(), "mae": error})
+        predictions = pd.DataFrame.from_dict(predictions)
+
+        model_results = {}
+        for model in ['NHITS', 'PatchTST', 'MLP']:
+            model_results[model] = mape(predictions['y'], predictions[model])
+        evaluation = {
+            **static_data[static_data['unique_id'] == sample_id].iloc[0].to_dict(),
+            **model_results,
+        }
+        evaluations.append(evaluation)
+        print(f'Evaluation for {sample_id} finished')
+        print(evaluation)
+        
 
     # evaluation dataframe should contain the following columns:
     # model, unique_id, kwP, orientation, tilt, mae
-    pd.DataFrame(evaluations).to_parquet(target_dir / "evaluations.parquet")
-
-
-def eval_for_symreg(metadata_path: str, target_column: str, data_dir: Path, target_dir: Path, limit: int = None):
-    # TODO
-    pass
+    pd.DataFrame(evaluations).to_parquet(target_dir / "evaluations_dl.parquet")
 
 
 def main():
@@ -120,10 +126,10 @@ def main():
         NormalizedPVGISSchema.power,
         Paths.pvgis_data_dir,
         Paths.general_test_results_dl,
-        limit=1000,
+        limit=10,
     )
     # eval_for_dl(
-    #     SystemData.german_enriched_test_distribution,
+    #     SystemData.german_fixed_location_points,
     #     NormalizedPVGISSchema.power,
     #     Paths.pvgis_fixed_location,
     #     Paths.fixed_points_results_dl,
@@ -133,30 +139,7 @@ def main():
     #     SystemData.german_enriched_test_distribution,
     #     NormalizedPVGISSchema.power,
     #     Paths.pvgis_outward_data_dir,
-    #     Paths.outward_points_results_dl,
-    #     limit=1000,
-    # )
-
-    # symbolic regression
-    # eval_for_symreg(
-    #     SystemData.german_enriched_test_distribution,
-    #     NormalizedPVGISSchema.power,
-    #     Paths.pvgis_data_dir,
-    #     Paths.general_test_results_symreg,
-    #     limit=1000,
-    # )
-    # eval_for_symreg(
-    #     SystemData.german_enriched_test_distribution,
-    #     NormalizedPVGISSchema.power,
-    #     Paths.pvgis_fixed_location,
-    #     Paths.fixed_points_results_symreg,
-    #     limit=1000,
-    # )
-    # eval_for_symreg(
-    #     SystemData.german_enriched_test_distribution,
-    #     NormalizedPVGISSchema.power,
-    #     Paths.pvgis_outward_data_dir,
-    #     Paths.outward_points_results_symreg,
+        # Paths.outward_points_results_dl,
     #     limit=1000,
     # )
 
