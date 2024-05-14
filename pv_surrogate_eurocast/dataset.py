@@ -14,6 +14,7 @@ class PVGISDataPackage:
     pvgis_data_path: str = root / 'pvgis'
     fixed_location_pvgis_data_path: str = root / 'pvgis_fixed_location'
     outward_pvgis_data_path: str = root / 'pvgis_outward'
+    system_data_path: str = root / 'system_data'
 
 
 class PVGISDataset(Protocol):
@@ -23,7 +24,7 @@ class PVGISDataset(Protocol):
     def __getitem__(self, index: int):
         raise NotImplementedError
 
-    def get_static_data(self, idx) -> pd.Series:
+    def get_static_data(self, index: int) -> pd.Series:
         raise NotImplementedError
 
     def get_all_static_data(self) -> pd.DataFrame:
@@ -85,12 +86,12 @@ class PVGISGermanyDataset(PVGISDataset):
 
         match included_data:
             case IncludedData.train:
-                self.metadata = pd.read_parquet(data_package_structure.root / 'system_data' / "german_enriched_train_distribution.parquet")
+                self.metadata = pd.read_parquet(data_package_structure.system_data_path / "german_enriched_train_distribution.parquet")
             case IncludedData.test:
-                self.metadata = pd.read_parquet(data_package_structure.root  / 'system_data'/ "german_enriched_test_distribution.parquet")
+                self.metadata = pd.read_parquet(data_package_structure.system_data_path / "german_enriched_test_distribution.parquet")
             case IncludedData.all:
-                self.train_metadata = pd.read_parquet(data_package_structure.root  / 'system_data'/ "german_enriched_train_distribution.parquet")
-                self.test_metadata = pd.read_parquet(data_package_structure.root  / 'system_data'/ "german_enriched_test_distribution.parquet")
+                self.train_metadata = pd.read_parquet(data_package_structure.system_data_path / "german_enriched_train_distribution.parquet")
+                self.test_metadata = pd.read_parquet(data_package_structure.system_data_path / "german_enriched_test_distribution.parquet")
                 self.metadata = pd.concat([self.train_metadata, self.test_metadata])
             case _:
                 raise ValueError(f"Invalid value for included_data: {included_data}!")
@@ -127,7 +128,7 @@ class FixedLocationPVGISGermanyDataset(PVGISDataset):
         self.data_path = data_package_structure.fixed_location_pvgis_data_path
         self.target_column = module_column_name
 
-        self.metadata = pd.read_parquet(data_package_structure.root / 'system_data' / "german_fixed_location.parquet")
+        self.metadata = pd.read_parquet(data_package_structure.system_data_path  / "german_fixed_location.parquet")
 
         # filter not available samples (due to pvgis errors) - these are only a few
         self.metadata = _filter_samples_which_are_not_available(self.data_path, self.metadata)
@@ -136,13 +137,13 @@ class FixedLocationPVGISGermanyDataset(PVGISDataset):
     def __len__(self):
         return len(self.metadata)
 
-    def __getitem__(self, idx):
-        row = self.metadata.iloc[idx]
+    def __getitem__(self, index: int):
+        row = self.metadata.iloc[index]
         target = _read_module_data(self.data_path, row['sample_id'], self.target_column)
         return target
 
-    def get_static_data(self, idx) -> pd.Series:
-        return self.metadata.iloc[idx]
+    def get_static_data(self, index: int) -> pd.Series:
+        return self.metadata.iloc[index]
 
     def get_all_static_data(self) -> pd.DataFrame:
         return self.metadata
@@ -169,7 +170,7 @@ class OutwardPointsPVGISGermanyDataset(PVGISDataset):
         self.data_path = data_package_structure.outward_pvgis_data_path
         self.target_column = module_column_name
 
-        self.metadata = pd.read_parquet(data_package_structure.root / 'system_data' / "german_outward_points.parquet")
+        self.metadata = pd.read_parquet(data_package_structure.system_data_path  / "german_outward_points.parquet")
         self.metadata['id'] = self.metadata['sample_id']
         self.metadata['sample_id'] = self.metadata['sample_id'].astype(str) + '_' + self.metadata['bearing'].astype(str) + '_' + self.metadata['distance'].astype(str)
 
@@ -179,14 +180,14 @@ class OutwardPointsPVGISGermanyDataset(PVGISDataset):
     def __len__(self):
         return len(self.metadata)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, index: int):
         # return id as string of: f'{config["sample_id"]}_{config["bearing"]}_{config["distance"]}'
-        row = self.metadata.iloc[idx]
+        row = self.metadata.iloc[index]
         target = _read_module_data(self.data_path, row["sample_id"], self.target_column)
         return target
 
-    def get_static_data(self, idx) -> pd.Series:
-        return self.metadata.iloc[idx]
+    def get_static_data(self, index: int) -> pd.Series:
+        return self.metadata.iloc[index]
 
     def get_all_static_data(self) -> pd.DataFrame:
         return self.metadata
@@ -204,8 +205,8 @@ class ChallengePVGISGermanyDataset:
         self.dataset = dataset
         self.yearly_degradation_rate = yearly_degredation_rate
 
-    def __getitem__(self, idx):
-        target = self.dataset[idx]
+    def __getitem__(self, index: int):
+        target = self.dataset[index]
 
         hourly_degredation = self.yearly_degradation_rate / 365.0 / 24.0
 
@@ -219,8 +220,8 @@ class ChallengePVGISGermanyDataset:
 
         return target
 
-    def get_static_data(self, idx) -> pd.Series:
-        return self.dataset.get_static_data(idx)
+    def get_static_data(self, index: int) -> pd.Series:
+        return self.dataset.get_static_data(index)
 
     def get_all_static_data(self) -> pd.DataFrame:
         return self.dataset.get_all_static_data()
