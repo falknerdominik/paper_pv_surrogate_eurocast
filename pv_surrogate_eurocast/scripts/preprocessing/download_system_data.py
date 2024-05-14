@@ -72,8 +72,8 @@ def search_for_systems(country: str, pvoutput: PVOutput, geo_cache_dir: Path = P
 @flow
 def main():
     # context
-    api_key = "5982b5f0ff8b9e8f4cbecf9677a5f9cb242eb543"
-    system_id = 103045
+    api_key = None
+    system_id = None
     CACHE_DIR = Paths.cache_dir
 
     # parameters
