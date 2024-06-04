@@ -45,7 +45,7 @@ def main():
         horizon = 24
         models = [
             AutoNHITS(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100, scaler_type="standard"),
-            AutoTFT(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100, scaler_type="standard"),
+            # AutoTFT(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100, scaler_type="standard"),
             AutoMLP(h=horizon, loss=MSE(), search_alg=HyperOptSearch(), num_samples=100, scaler_type="standard"),
         ]
         nf = NeuralForecast(models=models, freq="H")

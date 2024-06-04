@@ -4,11 +4,34 @@ from typing import Any, Callable
 import pandas as pd
 import geopandas as gpd
 from neuralforecast import NeuralForecast
-from neuralforecast.losses.numpy import mae, mape
+from neuralforecast.losses.numpy import mae, smape
 
 from pv_surrogate_eurocast.constants import Paths, SystemData
 from pv_surrogate_eurocast.scripts.helper import load_static_data
 from pv_surrogate_eurocast.typedef import NormalizedPVGISSchema
+
+def filter_zero_rows(series1, series2):
+    """
+    Filters out rows where either series contains 0. Important for the SMAPE
+
+    Parameters:
+    series1 (pd.Series): The first series.
+    series2 (pd.Series): The second series.
+
+    Returns:
+    (pd.Series, pd.Series): The filtered series.
+    """
+    # Combine the two series into a DataFrame
+    df = pd.DataFrame({'series1': series1, 'series2': series2})
+
+    # Filter out rows where either series contains 0
+    filtered_df = df[(df['series1'] != 0) & (df['series2'] != 0)]
+
+    # Extract the filtered series
+    filtered_series1 = filtered_df['series1']
+    filtered_series2 = filtered_df['series2']
+
+    return filtered_series1, filtered_series2
 
 
 def index_series_loader(index: int, row: pd.Series, time_series_dir: Path) -> tuple[int, pd.DataFrame]:
@@ -103,7 +126,9 @@ def eval_for_dl(metadata_path: str, target_column: str, data_dir: Path, target_d
 
         model_results = {}
         for model in ['NHITS', 'PatchTST', 'MLP']:
-            model_results[model] = mape(predictions['y'], predictions[model])
+            # filter any rows containing 0 - avoid unbounded errors in the prediction
+            y, y_hat = filter_zero_rows(predictions['y'], predictions[model])
+            model_results[model] = smape(y, y_hat)
         evaluation = {
             **static_data[static_data['unique_id'] == sample_id].iloc[0].to_dict(),
             **model_results,
